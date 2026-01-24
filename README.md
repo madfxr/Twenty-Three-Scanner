@@ -65,7 +65,7 @@ The vulnerability exploits improper validation of the `USER` environment variabl
 ```bash
 # Clone the Repository
 git clone https://github.com/madfxr/Twenty-Three-Scanner.git
-cd twenty-three-scanner
+cd Twenty-Three-Scanner
 
 # Make Executable
 chmod +x twenty-three-scanner.py
