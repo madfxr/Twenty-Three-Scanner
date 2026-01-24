@@ -1,4 +1,4 @@
-# 🎯 Twenty-Three Scanner
+# 🎯 Twenty-Three Scanner v1.0
 
 **CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**
 
@@ -23,6 +23,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 - [Legal Disclaimer](#-legal-disclaimer)
 - [Contributing](#-contributing)
 - [License](#-license)
+- [Reference](https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html)
 
 ---
 
@@ -45,9 +46,9 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 **CVE-2026-24061** is a critical authentication bypass vulnerability in GNU Inetutils telnetd that allows unauthenticated remote attackers to gain root access by exploiting the NEW-ENVIRON option handling.
 
 ### Affected Versions
-- GNU Inetutils telnetd <= 2.x
-- Various embedded Linux distributions
-- IoT devices with vulnerable telnetd implementations
+- GNU InetUtils since version 1.9.3 up to and including version 2.7.
+- Various embedded Linux distributions.
+- IoT devices with vulnerable telnetd implementations.
 
 ### Attack Vector
 The vulnerability exploits improper validation of the `USER` environment variable in the telnet NEW-ENVIRON (RFC 1572) option negotiation, allowing attackers to inject malicious values like `-f root` to bypass authentication.
@@ -62,11 +63,12 @@ The vulnerability exploits improper validation of the `USER` environment variabl
 ### Quick Install
 
 ```bash
-# Clone the repository
+# Clone the Repository
 git clone https://github.com/madfxr/Twenty-Three-Scanner.git
 cd twenty-three-scanner
 
-# Make executable
+# Make Executable
 chmod +x twenty-three-scanner.py
-# Run
+
+# Run the Script
 python3 twenty-three-scanner.py -h
