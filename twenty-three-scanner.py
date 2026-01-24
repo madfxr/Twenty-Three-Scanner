@@ -629,6 +629,7 @@ def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, tot
     padding_right = width - 4 - len(vuln_title) - padding_left
     lines.append("│ " + " " * padding_left + vuln_title + " " * padding_right + " │")
     
+    # ✅ ALL separators MUST be exactly 78 chars: 1 + 5 + 1 + 24 + 1 + 8 + 1 + 36 + 1 = 78
     lines.append("├─────┼────────────────────────┼────────┼────────────────────────────────────┤")
     lines.append(f"│   # │ Target                 │   Port │ Evidence                           │")
     lines.append("├─────┼────────────────────────┼────────┼────────────────────────────────────┤")
@@ -637,6 +638,7 @@ def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, tot
         evidence = result.evidence[:33] + ".." if len(result.evidence) > 35 else result.evidence
         lines.append(f"│ {idx:>3} │ {result.host:<22} │ {result.port:>6} │ {evidence:<34} │")
     
+    # ✅ CORRECTED: Footer must have 36 dashes in Evidence section (same as header)
     lines.append("└─────┴────────────────────────┴────────┴────────────────────────────────────┘\n")
     
     return "\n".join(lines)
@@ -788,14 +790,15 @@ def scan_with_basic_compact(
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="twenty-three-scanner",
+        prog="python3 twenty-three-scanner",
         description="CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Scan specific ASN with multiple ports
   %(prog)s -a AS10111 -p 23,2323 --threads 100
-
+  %(prog)s -a 10111 -p 23,2323 --threads 100
+  
   # Scan CIDR range
   %(prog)s -t 192.168.23.0/24 -p 23 -o results.txt
 
