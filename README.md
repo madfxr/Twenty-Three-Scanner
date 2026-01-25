@@ -4,9 +4,13 @@
 
 A powerful, fast, and elegant scanner for detecting vulnerable telnetd services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure Python standard library - zero external dependencies required.
 
-[![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey.svg)](https://www.linux.org)
+[![Python](https://img.shields.io/badge/python-3.7+-blue?logo=python&logoColor=white)](https://www.python.org)
+[![Linux](https://img.shields.io/badge/platform-linux-lightgrey?logo=linux&logoColor=white)](https://www.linux.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)
+[![OpenSource](https://img.shields.io/badge/OpenSource-yes-brightgreen)](https://opensource.org)
+[![ReadTeam](https://img.shields.io/badge/RedTeam-Security-red?logo=shield)]()
+[![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-Tools-purple?logo=hackthebox&logoColor=white)]()
+
 
 ---
 
