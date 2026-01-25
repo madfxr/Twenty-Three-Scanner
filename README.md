@@ -2,7 +2,7 @@
 
 **CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**
 
-A powerful, fast, and elegant scanner for detecting vulnerable telnetd services affected by CVE-2026-24061. Built with pure Python standard library - zero external dependencies required.
+A powerful, fast, and elegant scanner for detecting vulnerable telnetd services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure Python standard library - zero external dependencies required.
 
 [![Python Version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -19,7 +19,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 - [Examples](#-examples)
 - [Demo](#-demo)
 - [License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)
-- [Reference](https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html)
+- [References](#-references)
 
 ---
 
@@ -39,7 +39,23 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 
 ## 🔍 Vulnerability Details
 
-**CVE-2026-24061** is a critical authentication bypass vulnerability in GNU Inetutils telnetd that allows unauthenticated remote attackers to gain root access by exploiting the NEW-ENVIRON option handling.
+**[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in GNU Inetutils telnetd that allows unauthenticated remote attackers to gain root access by exploiting the NEW-ENVIRON option handling.
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/d6b009b7-67d3-41b6-ace6-7fd5b29bd4a0"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/2710b1b6-74cf-4f6a-87d3-981d7f1eaa6e"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
 
 ### Affected Versions
 - GNU InetUtils since version 1.9.3 up to and including version 2.7.
@@ -70,7 +86,7 @@ python3 twenty-three-scanner.py -h
 
 ---
 
-## 📖 Usage
+## 📓 Usage
 
 ```bash
 usage: python3 twenty-three-scanner.py [-h] [-t TARGET] [-f FILE] [-a ASN] [-p PORT] [--threads N] [--user-value VALUE] [--connect-timeout SEC] [--read-timeout SEC]
@@ -142,3 +158,11 @@ Output Options:
     style="max-width: 891px; width: 100%;"
   />
 </p>
+
+---
+
+## 📖 References
+- https://nvd.nist.gov/vuln/detail/CVE-2026-24061
+- https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html
+- https://www.openwall.com/lists/oss-security/2026/01/20/2
+- https://github.com/SafeBreach-Labs/CVE-2026-24061
