@@ -10,6 +10,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 
 ---
 
+<a id="table-of-contents"></a>
 ## 📋 Table of Contents
 
 - [Features](#-features)
@@ -23,6 +24,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 
 ---
 
+<a id="features"></a>
 ## ✨ Features
 
 - 🚀 **High-Performance Scanning** - Multi-threaded architecture with configurable thread count
@@ -37,6 +39,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 
 ---
 
+<a id="vulnerability-details"></a>
 ## 🔍 Vulnerability Details
 
 **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in GNU Inetutils telnetd that allows unauthenticated remote attackers to gain root access by exploiting the NEW-ENVIRON option handling.
@@ -57,19 +60,23 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
   />
 </p>
 
+<a id="affected-versions"></a>
 ### Affected Versions
 - GNU InetUtils since version 1.9.3 up to and including version 2.7.
 - Various embedded Linux distributions.
 - IoT devices with vulnerable telnetd implementations.
 
+<a id="attack-vector"></a>
 ### Attack Vector
 The vulnerability exploits improper validation of the `USER` environment variable in the telnet NEW-ENVIRON (RFC 1572) option negotiation, allowing attackers to inject malicious values like `-f root` to bypass authentication.
 
+<a id="cvss-score"></a>
 ### CVSS Score
 **9.8 (Critical)** - CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
 
 ---
 
+<a id="installation"></a>
 ## 📦 Installation
 
 ```bash
@@ -86,6 +93,7 @@ python3 twenty-three-scanner.py -h
 
 ---
 
+<a id="usage"></a>
 ## 📓 Usage
 
 ```bash
@@ -129,6 +137,7 @@ Output Options:
 
 ---
 
+<a id="examples"></a>
 ## 🧩 Examples
 
 ```bash
@@ -149,6 +158,9 @@ Output Options:
   python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
 ```
 
+---
+
+<a id="demos"></a>
 ## 🕹️ Demos
 
 <p align="center">
@@ -161,6 +173,7 @@ Output Options:
 
 ---
 
+<a id="references"></a>
 ## 📖 References
 - https://nvd.nist.gov/vuln/detail/CVE-2026-24061
 - https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html
