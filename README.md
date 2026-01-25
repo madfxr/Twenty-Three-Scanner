@@ -130,6 +130,7 @@ Output Options:
 ---
 
 ## 🧩 Examples
+
 ```bash
   # Scan specific ASN with multiple ports
   python3 twenty-three-scanner.py -a AS10111 -p 23,2323 --threads 100
@@ -151,6 +152,7 @@ Output Options:
 ---
 
 ## 🕹️ Demos
+
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/0039b53a-9527-4c74-a341-8da6d25af834"
