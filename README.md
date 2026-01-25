@@ -17,7 +17,6 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Examples](#-examples)
-- [Demos](#-demos)
 - [License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)
 - [References](#-references)
 
@@ -148,18 +147,6 @@ Output Options:
   # Scan ASN with custom limits
   python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
 ```
-
----
-
-## 🕹️ Demos
-
-<p align="center">
-  <img
-    src="https://github.com/user-attachments/assets/0039b53a-9527-4c74-a341-8da6d25af834"
-    alt="image"
-    style="max-width: 891px; width: 100%;"
-  />
-</p>
 
 ---
 
