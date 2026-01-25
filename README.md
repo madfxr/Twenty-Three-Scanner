@@ -68,6 +68,8 @@ chmod +x twenty-three-scanner.py
 python3 twenty-three-scanner.py -h
 ```
 
+---
+
 ## 📖 Usage
 
 ```bash
@@ -109,6 +111,8 @@ Output Options:
   -v, --verbose         enable verbose debug logging
 ```
 
+---
+
 ## 🧩 Examples
 ```bash
   # Scan specific ASN with multiple ports
@@ -127,6 +131,8 @@ Output Options:
   # Scan ASN with custom limits
   python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
 ```
+
+---
 
 ## 🕹️ Demo
 <p align="center">
