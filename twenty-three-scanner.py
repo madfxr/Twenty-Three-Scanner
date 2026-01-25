@@ -185,7 +185,7 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
             logger.info("Querying BGPView API for AS%s...", asn_clean)
             url = f"https://api.bgpview.io/asn/{asn_clean}/prefixes"
             req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Twenty-Three-Scanner/1.0')
+            req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
 
             with urllib.request.urlopen(req, timeout=15) as response:
                 data = json.loads(response.read().decode())
@@ -213,7 +213,7 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
             logger.info("Querying HackerTarget for AS%s...", asn_clean)
             url = f"https://api.hackertarget.com/aslookup/?q=AS{asn_clean}"
             req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Twenty-Three-Scanner/1.0')
+            req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
 
             with urllib.request.urlopen(req, timeout=15) as response:
                 result = response.read().decode('utf-8', errors='ignore')
