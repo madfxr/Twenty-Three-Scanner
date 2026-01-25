@@ -17,7 +17,7 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Examples](#-examples)
-- [Demo](#-demo)
+- [Demos](#-demos)
 - [License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)
 - [References](#-references)
 
@@ -150,7 +150,7 @@ Output Options:
 
 ---
 
-## 🕹️ Demo
+## 🕹️ Demos
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/0039b53a-9527-4c74-a341-8da6d25af834"
