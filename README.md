@@ -17,11 +17,14 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 ## 🔗 Table of Contents
 
 - 🧩 **[Features](#-features)**
-- ☢️ **[Vulnerability Details](#-vulnerability-details)**
-- 🛠️ **[Installation](#-installation)**
+- ☢️ **[Vulnerability Details](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-vulnerability-details)**
+  - 🏷️ **[Affected Versions](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-affected-versions)**
+  - ⚔️ **[Attack Vector](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-attack-vector)**
+  - 🚨 **[CVSS Score](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#-cvss-score)**
+- 🛠️ **[Installation](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-installation)**
 - 📜 **[Usage](#-usage)**
 - 🔬 **[Examples](#-examples)**
-- ⚗️ **[Demos](#-demos)**
+- ⚗️ **[Demos](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-demos)**
 - ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)**
 - 📖 **[References](#-references)**
 
