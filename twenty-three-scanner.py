@@ -31,7 +31,6 @@ class LogColors:
     BLUE = '\033[94m'
     GREEN = '\033[92m'
 
-
 class ColoredFormatter(logging.Formatter):
     """Custom formatter with colored level names only."""
 
@@ -76,11 +75,9 @@ SERVER_WILL_OPTIONS: Set[int] = {ECHO, SUPPRESS_GO_AHEAD}
 
 LOGIN_PROMPT_RE = re.compile(r"^(login|username|password)\s*:?\s*$", re.IGNORECASE)
 
-
 def normalize_text(text: str) -> str:
     """Normalize line endings."""
     return text.replace("\r\n", "\n").replace("\r", "\n")
-
 
 def has_login_prompt(text: str) -> bool:
     """Check if text contains login prompt."""
@@ -101,12 +98,10 @@ def has_login_prompt(text: str) -> bool:
             return True
     return False
 
-
 def has_root_id(text: str) -> bool:
     """Check if text contains uid=0 and gid=0."""
     lower = text.lower()
     return "uid=0" in lower and "gid=0" in lower
-
 
 def escape_env_data(data: bytes) -> bytes:
     """Escape special bytes in environment data."""
@@ -116,7 +111,6 @@ def escape_env_data(data: bytes) -> bytes:
             escaped.append(ENV_ESC)
         escaped.append(byte)
     return bytes(escaped)
-
 
 def build_env_payload(option: int, name: str, value: str) -> bytes:
     """Build NEW-ENVIRON Subnegotiation Payload."""
@@ -128,7 +122,6 @@ def build_env_payload(option: int, name: str, value: str) -> bytes:
     payload += value_bytes
     payload += bytes([IAC, SE])
     return bytes(payload)
-
 
 def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
     """Fetch IP Prefixes for a Given ASN Using Multiple Sources."""
@@ -225,7 +218,6 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
             logger.warning("HackerTarget Query Failed: %s", exc)
 
     return sorted(list(prefixes))
-
 
 class TelnetNegotiator:
     """Handle Telnet protocol negotiation."""
@@ -403,14 +395,12 @@ class TelnetNegotiator:
             else:
                 self.send_cmd(DONT, opt)
 
-
 @dataclass
 class ScanConfig:
     connect_timeout: float
     read_timeout: float
     id_timeout: float
     user_value: str
-
 
 @dataclass
 class ScanResult:
@@ -419,7 +409,6 @@ class ScanResult:
     vulnerable: bool = False
     evidence: str = ""
     error: str = ""
-
 
 def parse_ports(port_value: str) -> List[int]:
     """Parse comma-separated port list into integers."""
@@ -439,10 +428,8 @@ def parse_ports(port_value: str) -> List[int]:
         raise argparse.ArgumentTypeError("No Valid Ports Provided")
     return ports
 
-
 def split_target_tokens(value: str) -> List[str]:
     return [token.strip() for token in value.replace(",", " ").split() if token.strip()]
-
 
 def read_targets_file(path: str) -> List[str]:
     tokens: List[str] = []
@@ -453,7 +440,6 @@ def read_targets_file(path: str) -> List[str]:
                 continue
             tokens.extend(split_target_tokens(line))
     return tokens
-
 
 def expand_targets(
     raw_tokens: Sequence[str],
@@ -515,7 +501,6 @@ def expand_targets(
 
     return targets
 
-
 def scan_target(
     host: str,
     port: int,
@@ -565,7 +550,6 @@ def scan_target(
         result.error = str(exc)
         return result
 
-
 def setup_logging(verbose: bool) -> logging.Logger:
     level = logging.DEBUG if verbose else logging.INFO
 
@@ -576,7 +560,6 @@ def setup_logging(verbose: bool) -> logging.Logger:
     )
 
     return logging.getLogger("twenty_three_scanner")
-
 
 def create_compact_header(asn: str = None, targets: int = 0, ports: str = "", threads: int = 50) -> str:
     width = 81
@@ -616,8 +599,6 @@ def create_compact_header(asn: str = None, targets: int = 0, ports: str = "", th
     lines.append("└" + "─" * (width - 2) + "┘")
 
     return "\n".join(lines)
-
-
 
 def create_combined_progress_box(
     completed: int,
@@ -705,7 +686,6 @@ def _center(text: str, width: int) -> str:
     left = (width - len(text)) // 2
     right = width - len(text) - left
     return (" " * left) + text + (" " * right)
-
 
 def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, total: int, scanned: int, interrupted: bool = False) -> str:
     width = 81
@@ -870,7 +850,6 @@ def scan_with_basic_compact(
         sys.stderr.flush()
         print("\n")
         logger.info("Scanning Interrupted by User (CTRL+C)")
-
 
     finally:
         executor.shutdown(wait=False, cancel_futures=True)
