@@ -1128,7 +1128,7 @@ def main(argv: Sequence[str]) -> int:
     )
 
     if not targets:
-        logger.error("No Valid Targets After Expansion.")
+        logger.error("No Valid Targets After Expansion")
         return 2
 
     if len(targets) > args.max_total_hosts:
