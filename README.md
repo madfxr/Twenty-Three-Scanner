@@ -11,7 +11,6 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 [![ReadTeam](https://img.shields.io/badge/RedTeam-Security-red?logo=shield)]()
 [![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-Tools-purple?logo=hackthebox&logoColor=white)]()
 
-
 ---
 
 ## 🔗 Table of Contents
