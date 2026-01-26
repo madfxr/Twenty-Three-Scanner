@@ -2,7 +2,7 @@
 
 **CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**
 
-A powerful, fast, and elegant scanner for detecting vulnerable telnetd services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure Python standard library - zero external dependencies required.
+A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure **[Python](https://www.python.org)** standard library - zero external dependencies required.
 
 [![Python](https://img.shields.io/badge/python-3.7+-blue?logo=python&logoColor=white)](https://www.python.org)
 [![Linux](https://img.shields.io/badge/platform-linux-lightgrey?logo=linux&logoColor=white)](https://www.linux.org)
@@ -14,36 +14,36 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
 
 ---
 
-## 📋 Table of Contents
+## 🔗 Table of Contents
 
-- [Features](#-features)
-- [Vulnerability Details](#-vulnerability-details)
-- [Installation](#-installation)
-- [Usage](#-usage)
-- [Examples](#-examples)
-- [Demos](#-demos)
-- [License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)
-- [References](#-references)
-
----
-
-## ✨ Features
-
-- 🚀 **High-Performance Scanning** - Multi-threaded architecture with configurable thread count
-- 🌐 **Flexible Target Input** - Support for single IPs, CIDR ranges, ASN lookups, and file-based lists
-- 📊 **Real-time Progress** - Beautiful Unicode-based UI with live progress bars
-- 🎯 **ASN Intelligence** - Automatic prefix fetching from RADB, BGPView, and HackerTarget APIs
-- 💾 **Graceful Interruption** - Ctrl+C handling with automatic result saving
-- 📝 **Detailed Logging** - Configurable verbosity levels for debugging
-- 🔒 **Safe Scanning** - Built-in limits to prevent accidental massive scans
-- 🎨 **Clean Output** - Professional bordered tables with scan summaries
-- ⚡ **Zero Dependencies** - Pure Python 3.7+ standard library only
+- 🧩 **[Features](#-features)**
+- ☢️ **[Vulnerability Details](#-vulnerability-details)**
+- 🛠️ **[Installation](#-installation)**
+- 📜 **[Usage](#-usage)**
+- 🔬 **[Examples](#-examples)**
+- ⚗️ **[Demos](#-demos)**
+- ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)**
+- 📖 **[References](#-references)**
 
 ---
 
-## 🔍 Vulnerability Details
+## 🧩 Features
 
-**[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in GNU Inetutils telnetd that allows unauthenticated remote attackers to gain root access by exploiting the NEW-ENVIRON option handling.
+- 🚀 **High-Performance Scanning** - Multi-Threaded Architecture with Configurable Thread Count.
+- 🌐 **Flexible Target Input** - Support for Single IPs, CIDR Ranges, ASN Lookups, and File-Based Lists.
+- 📊 **Real-Time Progress** - Beautiful Unicode-Based UI with Live Progress Bars.
+- 🤖 **ASN Intelligence** - Automatic Prefix Fetching from **[RADB](https://www.radb.net)**, **[BGPView](https://bgpview.docs.apiary.io)**, and **[HackerTarget](https://hackertarget.com)** APIs.
+- 💾 **Graceful Interruption** - CTRL+C Handling with Automatic Result Saving.
+- 📝 **Detailed Logging** - Configurable Verbosity Levels for Debugging.
+- 🔐 **Safe Scanning** - Built-In Limits to Prevent Accidental Massive Scans.
+- 🎨 **Clean Output** - Professional Bordered Tables with Scan Summaries.
+- 📦 **Zero Dependencies** - Pure **[Python](https://www.python.org)** 3.7+ Standard Library Only.
+
+---
+
+## ☢️ Vulnerability Details
+
+**[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in **[GNU InetUtils](https://www.gnu.org/software/inetutils/manual/inetutils.html)** **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** that allows unauthenticated remote attackers to gain root access by exploiting the **NEW-ENVIRON** option handling.
 
 <p align="center">
   <img
@@ -61,20 +61,20 @@ A powerful, fast, and elegant scanner for detecting vulnerable telnetd services 
   />
 </p>
 
-### Affected Versions
-- GNU InetUtils since version 1.9.3 up to and including version 2.7.
-- Various embedded Linux distributions.
-- IoT devices with vulnerable telnetd implementations.
+### 🏷️ Affected Versions
+- **[GNU InetUtils](https://www.gnu.org/software/inetutils/manual/inetutils.html)** since version 1.9.3 up to and including version 2.7.
+- Various embedded **[Linux](https://www.linux.org)** distributions.
+- IoT devices with vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** implementations.
 
-### Attack Vector
-The vulnerability exploits improper validation of the `USER` environment variable in the telnet NEW-ENVIRON (RFC 1572) option negotiation, allowing attackers to inject malicious values like `-f root` to bypass authentication.
+### ⚔️ Attack Vector
+The vulnerability exploits improper validation of the `USER` environment variable in the telnet **NEW-ENVIRON ([RFC 1572](https://www.rfc-editor.org/rfc/rfc1572.html))** option negotiation, allowing attackers to inject malicious values like `-f root` to bypass authentication.
 
-### CVSS Score
-**9.8 (Critical)** - CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H
+### 🚨 CVSS Score
+**9.8 (Critical)** - **[CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H](https://www.first.org/cvss/calculator/3-1#CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)**.
 
 ---
 
-## 📦 Installation
+## 🛠️ Installation
 
 ```bash
 # Clone the Repository
@@ -90,7 +90,7 @@ python3 twenty-three-scanner.py -h
 
 ---
 
-## 📓 Usage
+## 📜 Usage
 
 ```bash
 usage: python3 twenty-three-scanner.py [-h] [-t TARGET] [-f FILE] [-a ASN] [-p PORT] [--threads N] [--user-value VALUE] [--connect-timeout SEC] [--read-timeout SEC]
@@ -133,7 +133,7 @@ Output Options:
 
 ---
 
-## 🧩 Examples
+## 🔬 Examples
 
 ```bash
   # Scan specific ASN with multiple ports
@@ -155,7 +155,7 @@ Output Options:
 
 ---
 
-## ✨ Demos
+## ⚗️ Demos
 
 <p align="center">
   <img
