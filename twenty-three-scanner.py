@@ -146,7 +146,7 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
     prefixes: Set[str] = set()
 
     try:
-        logger.info("Querying RADB for AS%s...", asn_clean)
+        logger.info("Querying RADB for AS%s", asn_clean)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(10)
             s.connect(('whois.radb.net', 43))
@@ -182,7 +182,7 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
 
     if not prefixes:
         try:
-            logger.info("Querying BGPView API for AS%s...", asn_clean)
+            logger.info("Querying BGPView API for AS%s", asn_clean)
             url = f"https://api.bgpview.io/asn/{asn_clean}/prefixes"
             req = urllib.request.Request(url)
             req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
@@ -210,7 +210,7 @@ def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
 
     if not prefixes:
         try:
-            logger.info("Querying HackerTarget for AS%s...", asn_clean)
+            logger.info("Querying HackerTarget for AS%s", asn_clean)
             url = f"https://api.hackertarget.com/aslookup/?q=AS{asn_clean}"
             req = urllib.request.Request(url)
             req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
@@ -590,7 +590,7 @@ def setup_logging(verbose: bool) -> logging.Logger:
 
 
 def create_compact_header(asn: str = None, targets: int = 0, ports: str = "", threads: int = 50) -> str:
-    width = 79
+    width = 81
     lines = []
 
     lines.append("┌" + "─" * (width - 2) + "┐")
@@ -641,12 +641,11 @@ def create_combined_progress_box(
     last_vulnerable_time: str = None
 ) -> str:
     """Create combined box with scanning progress."""
-    width = 79
+    width = 81
     lines = []
 
     lines.append("┌" + "─" * (width - 2) + "┐")
 
-    # Title tetap "SCANNING IN PROGRESS"
     title = "SCANNING IN PROGRESS"
     padding_left = (width - 4 - len(title)) // 2
     padding_right = width - 4 - len(title) - padding_left
@@ -722,74 +721,88 @@ def create_combined_progress_box(
 
     return "\n".join(lines)
 
+def _center(text: str, width: int) -> str:
+    if len(text) > width:
+        text = text[:width]
+    left = (width - len(text)) // 2
+    right = width - len(text) - left
+    return (" " * left) + text + (" " * right)
 
 
 def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, total: int, scanned: int, interrupted: bool = False) -> str:
-    width = 79
+    width = 81
+
+    def auto_center_title(title: str) -> str:
+        content_width = width - 4
+        padding_left = (content_width - len(title)) // 2
+        padding_right = content_width - len(title) - padding_left
+        return f"│ {' ' * padding_left}{title}{' ' * padding_right} │"
 
     lines = []
     lines.append("┌" + "─" * (width - 2) + "┐")
 
     title = "SCANNING INTERRUPTED" if interrupted else "SCANNING COMPLETED"
-    padding_left = (width - 4 - len(title)) // 2
-    padding_right = width - 4 - len(title) - padding_left
-    lines.append("│ " + " " * padding_left + title + " " * padding_right + " │")
-
+    lines.append(auto_center_title(title))
     lines.append("├" + "─" * (width - 2) + "┤")
 
     rate = scanned / elapsed if elapsed > 0 else 0
+    stats = [
+        f"Duration: {elapsed:.1f}s",
+        f"Total Scanned: {scanned:,} Endpoints ({(scanned/total*100):.1f}%)",
+        f"Scan Rate: {rate:.1f}/sec",
+        f"Result: {len(vulnerable)} VULNERABLE" if vulnerable else "Result: 0 NO VULNERABLE HOSTS"
+    ]
 
-    # Duration
-    dur_str = f"Duration: {elapsed:.1f}s"
-    padding = (width - 4) - len(dur_str)
-    lines.append(f"│ {dur_str}" + " " * padding + " │")
-
-    # Total Scanned
-    pct = (scanned / total * 100) if total > 0 else 0
-    if interrupted:
-        scan_str = f"Scanned: {scanned:,}/{total:,} Endpoints ({pct:.1f}%)"
-    else:
-        scan_str = f"Total Scanned: {scanned:,} Endpoints ({pct:.1f}%)"
-    padding = (width - 4) - len(scan_str)
-    lines.append(f"│ {scan_str}" + " " * padding + " │")
-
-    # Scan Rate
-    rate_str = f"Scan Rate: {rate:.1f}/sec"
-    padding = (width - 4) - len(rate_str)
-    lines.append(f"│ {rate_str}" + " " * padding + " │")
-
-    # Result
-    vuln_label = "VULNERABLE" if vulnerable else "NO VULNERABLE HOSTS"
-    vuln_str = f"Result: {len(vulnerable)} {vuln_label}"
-    padding = (width - 4) - len(vuln_str)
-    lines.append(f"│ {vuln_str}" + " " * padding + " │")
+    for stat in stats:
+        padding = width - 4 - len(stat)
+        lines.append(f"│ {stat}{' ' * padding} │")
 
     if not vulnerable:
         lines.append("└" + "─" * (width - 2) + "┘")
         return "\n".join(lines)
 
     lines.append("├" + "─" * (width - 2) + "┤")
+    lines.append(auto_center_title("ALL VULNERABLE HOSTS"))
 
-    # ALL VULNERABLE HOSTS - centered
-    vuln_title = "ALL VULNERABLE HOSTS"
-    content_width = width - 4  # 75
-    padding_left = (content_width - len(vuln_title)) // 2
-    padding_right = content_width - len(vuln_title) - padding_left
-    lines.append("│ " + " " * padding_left + vuln_title + " " * padding_right + " │")
+    # FIX: [7,29,10,30] = 76 content ✓ + 4 pipes = 80 PERFECT
+    col_widths = [7, 29, 10, 30]
 
-    # Table dengan total content width = 75
-    # Kolom widths: # (5) + Host (29) + Port (10) + Evidence (31) = 75
-    lines.append("├─────┬─────────────────────────────┬──────────┬──────────────────────────────┤")
-    lines.append("│   # │ Host                        │   Port   │ Evidence                     │")
-    lines.append("├─────┼─────────────────────────────┼──────────┼──────────────────────────────┤")
+    # Separator EXACT count ─ sesuai col_widths
+    sep_parts = ["─" * w for w in col_widths]
+    top_sep = "├" + "┬".join(sep_parts) + "┤"
+    data_sep = "├" + "┼".join(sep_parts) + "┤"
+    bottom_sep = "└" + "┴".join(sep_parts) + "┘"
 
-    # Table rows
-    for idx, result in enumerate(vulnerable, 1):
-        evidence = result.evidence[:29] + ".." if len(result.evidence) > 31 else result.evidence
-        lines.append(f"│ {idx:>3} │ {result.host:<27} │ {result.port:>8} │ {evidence:<29}│")
+    lines.append(top_sep)
 
-    lines.append("└─────┴─────────────────────────────┴──────────┴──────────────────────────────┘")
+    # Headers CENTER - NO EXTRA SPACES
+    headers = ['#', 'Host', 'Port', 'Evidence']
+    header_parts = []
+    for header, w in zip(headers, col_widths):
+        pad_left = (w - len(header)) // 2
+        pad_right = w - len(header) - pad_left
+        header_parts.append(" " * pad_left + header + " " * pad_right)
+    # FIX: │content│content│content│content│ (NO extra spaces between)
+    lines.append("│" + "│".join(header_parts) + "│")
 
+    lines.append(data_sep)
+
+    # Data rows - SAME FORMAT
+    for i, result in enumerate(vulnerable, 1):
+        num_str = str(i)
+        host_str = result.host
+        port_str = str(result.port)
+        evidence = result.evidence or "N/A"
+
+        row_parts = []
+        for content, w in zip([num_str, host_str, port_str, evidence], col_widths):
+            pad_left = (w - len(content)) // 2
+            pad_right = w - len(content) - pad_left
+            row_parts.append(" " * pad_left + content + " " * pad_right)
+
+        lines.append("│" + "│".join(row_parts) + "│")
+
+    lines.append(bottom_sep)
     return "\n".join(lines)
 
 
@@ -889,7 +902,7 @@ def scan_with_basic_compact(
         sys.stderr.write("\r\033[K")
         sys.stderr.flush()
         print("\n")
-        logger.info("Scanning Interrupted by User (Ctrl+C)")
+        logger.info("Scanning Interrupted by User (CTRL+C)")
 
 
     finally:
@@ -1106,7 +1119,7 @@ def main(argv: Sequence[str]) -> int:
         logger.error("No Targets Specified. Use --target, --file, or --asn.")
         return 2
 
-    logger.info("Expanding %d Target Token(s)...", len(raw_tokens))
+    logger.info("Expanding %d Target Token(s)", len(raw_tokens))
     targets = expand_targets(
         raw_tokens,
         logger,
