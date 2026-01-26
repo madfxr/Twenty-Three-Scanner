@@ -31,16 +31,16 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 ## 🧩 Features
 
-- 🚀 **High-Performance Scanning** - Multi-Threaded Architecture with Configurable Thread Count.
-- 🌐 **Flexible Target Input** - Support for Single IPs, CIDR Ranges, ASN Lookups, and File-Based Lists.
-- 📊 **Real-Time Progress** - Beautiful Unicode-Based UI with Live Progress Bars.
-- 🤖 **ASN Intelligence** - Automatic Prefix Fetching from **[RADB](https://www.radb.net)**, **[BGPView](https://bgpview.docs.apiary.io)**, and **[HackerTarget](https://hackertarget.com)** APIs.
+- 🚀 **High-Performance Scanning** – Multi-Threaded Architecture with Configurable Thread Count.
+- 🌐 **Flexible Target Input** – Support for Single IPs, CIDR Ranges, ASN Lookups, and File-Based Lists.
+- 📊 **Real-Time Progress** – Beautiful Unicode-Based UI with Live Progress Bars.
+- 🤖 **ASN Intelligence** – Automatic Prefix Fetching from **[RADB](https://www.radb.net)**, **[BGPView](https://bgpview.docs.apiary.io)**, and **[HackerTarget](https://hackertarget.com)** APIs.
 - 🌍 **GEO Location Intelligence** – Real-Time ASN, Provider and Location Fetching from **[ipapi](https://ipapi.co)** API.
-- 💾 **Graceful Interruption** - CTRL+C Handling with Automatic Result Saving.
-- 📝 **Detailed Logging** - Configurable Verbosity Levels for Debugging.
-- 🔐 **Safe Scanning** - Built-In Limits to Prevent Accidental Massive Scans.
-- 🎨 **Clean Output** - Professional Bordered Tables with Scan Summaries.
-- 📦 **Zero Dependencies** - Pure **[Python](https://www.python.org)** 3.7+ Standard Library Only.
+- 💾 **Graceful Interruption** – CTRL+C Handling with Automatic Result Saving.
+- 📝 **Detailed Logging** – Configurable Verbosity Levels for Debugging.
+- 🔐 **Safe Scanning** – Built-In Limits to Prevent Accidental Massive Scans.
+- 🎨 **Clean Output** – Professional Bordered Tables with Scan Summaries.
+- 📦 **Zero Dependencies** – Pure **[Python](https://www.python.org)** 3.7+ Standard Library Only.
 
 ---
 
