@@ -64,13 +64,19 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
   />
 </p>
 
+---
+
 ### 🏷️ Affected Versions
 - **[GNU InetUtils](https://www.gnu.org/software/inetutils)** since version 1.9.3 up to and including version 2.7.
 - Various embedded **[Linux](https://www.linux.org)** distributions.
 - IoT devices with vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** implementations.
 
+---
+
 ### ⚔️ Attack Vector
 The vulnerability exploits improper validation of the `USER` environment variable in the telnet **NEW-ENVIRON ([RFC 1572](https://www.rfc-editor.org/rfc/rfc1572.html))** option negotiation, allowing attackers to inject malicious values like `-f root` to bypass authentication.
+
+---
 
 ### 🚨 CVSS Score
 **9.8 (Critical)** - **[CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H](https://www.first.org/cvss/calculator/3-1#CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H)**.
