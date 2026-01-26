@@ -78,14 +78,15 @@ The vulnerability exploits improper validation of the `USER` environment variabl
 
 ```bash
 # Clone the Repository
-git clone https://github.com/madfxr/Twenty-Three-Scanner.git
+cd /opt
+sudo git clone https://github.com/madfxr/Twenty-Three-Scanner.git
 cd Twenty-Three-Scanner
 
 # Make Executable
-chmod +x twenty-three-scanner.py
+sudo chmod +x twenty-three-scanner.py
 
 # Run the Script
-python3 twenty-three-scanner.py -h
+sudo python3 twenty-three-scanner.py -h
 ```
 
 ---
@@ -137,20 +138,20 @@ Output Options:
 
 ```bash
   # Scan Specific ASN with Multiple Ports
-  python3 twenty-three-scanner.py -a AS10111 -p 23,2323 --threads 100
-  python3 twenty-three-scanner.py -a 10111 -p 23,2323 --threads 100
+  sudo python3 twenty-three-scanner.py -a AS10111 -p 23,2323 --threads 100
+  sudo python3 twenty-three-scanner.py -a 10111 -p 23,2323 --threads 100
 
   # Scan CIDR Range
-  python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23 -o results.txt
+  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23 -o results.txt
 
   # Scan Multiple IPs with Multiple Ports
-  python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
+  sudo python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
 
   # Scan Single IP, IPs, and CIDR Range from File
-  python3 twenty-three-scanner.py -f targets.txt -p 23 --threads 50 -o output.txt
+  sudo python3 twenty-three-scanner.py -f targets.txt -p 23 --threads 50 -o output.txt
 
-  # Scan ASN with Custom Limits
-  python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
+  # Scan Specific ASN with Custom Limits
+  sudo python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
 ```
 
 ---
