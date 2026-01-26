@@ -43,7 +43,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 ## ☢️ Vulnerability Details
 
-**[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in **[GNU InetUtils](https://www.gnu.org/software/inetutils/manual/inetutils.html)** **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** that allows unauthenticated remote attackers to gain root access by exploiting the **NEW-ENVIRON** option handling.
+**[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in **[GNU InetUtils](https://www.gnu.org/software/inetutils)** **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** that allows unauthenticated remote attackers to gain root access by exploiting the **NEW-ENVIRON** option handling.
 
 <p align="center">
   <img
@@ -62,7 +62,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 </p>
 
 ### 🏷️ Affected Versions
-- **[GNU InetUtils](https://www.gnu.org/software/inetutils/manual/inetutils.html)** since version 1.9.3 up to and including version 2.7.
+- **[GNU InetUtils](https://www.gnu.org/software/inetutils)** since version 1.9.3 up to and including version 2.7.
 - Various embedded **[Linux](https://www.linux.org)** distributions.
 - IoT devices with vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** implementations.
 
@@ -176,7 +176,13 @@ Output Options:
 ---
 
 ## 📖 References
-- https://nvd.nist.gov/vuln/detail/CVE-2026-24061
-- https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html
-- https://www.openwall.com/lists/oss-security/2026/01/20/2
-- https://github.com/SafeBreach-Labs/CVE-2026-24061
+- **[NVD - CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**
+- **[CVE Record: CVE-2026-24061](https://www.cve.org/CVERecord?id=CVE-2026-24061)**
+- **[Inetutils - GNU network utilities](https://www.gnu.org/software/inetutils)**
+- **[[SECURITY] [DLA 4453-1] inetutils security update](https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html)**
+- **[GNU InetUtils Security Advisory: remote authentication by-pass in telnet](https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html)**
+- **[GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/20/2)**
+- **[GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/20/2#:~:text=root@...a%3A~%20USER=')**
+- **[Re: GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/22/1)**
+- **[Re: GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/20/8)**
+- **[CVE-2026-24061 Telnet RCE Exploit - By SafeBreach Labs](https://github.com/SafeBreach-Labs/CVE-2026-24061)**
