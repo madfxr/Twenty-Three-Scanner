@@ -22,7 +22,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 - 📜 **[Usage](#-usage)**
 - 🔬 **[Examples](#-examples)**
 - ⚗️ **[Demos](#-demos)**
-- ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/blob/main/LICENSE)**
+- ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)**
 - 📖 **[References](#-references)**
 
 ---
