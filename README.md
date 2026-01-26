@@ -185,6 +185,7 @@ Output Options:
 ---
 
 ## 📖 References
+- **[Critical GNU InetUtils telnetd Flaw Lets Attackers Bypass Login and Gain Root Access](https://thehackernews.com/2026/01/critical-gnu-inetutils-telnetd-flaw.html)**
 - **[NVD - CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**
 - **[CVE Record: CVE-2026-24061](https://www.cve.org/CVERecord?id=CVE-2026-24061)**
 - **[Inetutils - GNU network utilities](https://www.gnu.org/software/inetutils)**
