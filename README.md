@@ -159,7 +159,15 @@ Output Options:
 
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/0039b53a-9527-4c74-a341-8da6d25af834"
+    src="https://github.com/user-attachments/assets/b3a09dfd-58b9-4b32-ba42-80c5d6668c93"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/7812a297-f662-49f7-b6fd-307c156073bd"
     alt="image"
     style="max-width: 891px; width: 100%;"
   />
