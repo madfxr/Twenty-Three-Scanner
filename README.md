@@ -35,6 +35,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 - 🌐 **Flexible Target Input** - Support for Single IPs, CIDR Ranges, ASN Lookups, and File-Based Lists.
 - 📊 **Real-Time Progress** - Beautiful Unicode-Based UI with Live Progress Bars.
 - 🤖 **ASN Intelligence** - Automatic Prefix Fetching from **[RADB](https://www.radb.net)**, **[BGPView](https://bgpview.docs.apiary.io)**, and **[HackerTarget](https://hackertarget.com)** APIs.
+- 🌍 **GEO Location Intelligence** – d 
 - 💾 **Graceful Interruption** - CTRL+C Handling with Automatic Result Saving.
 - 📝 **Detailed Logging** - Configurable Verbosity Levels for Debugging.
 - 🔐 **Safe Scanning** - Built-In Limits to Prevent Accidental Massive Scans.
