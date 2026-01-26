@@ -16,7 +16,6 @@ import urllib.error
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Set, Tuple
 
-# Telnet protocol constants
 IAC = 255
 DONT = 254
 DO = 253
@@ -25,8 +24,6 @@ WILL = 251
 SB = 250
 SE = 240
 
-# ANSI Color Codes
-# ANSI Color Codes
 class LogColors:
     RESET = '\033[0m'
     RED = '\033[91m'
@@ -39,7 +36,7 @@ class ColoredFormatter(logging.Formatter):
     """Custom formatter with colored level names only."""
 
     COLORS = {
-        'DEBUG': '\033[94m',      # Blue
+        'DEBUG': '\033[94m',       # Blue
         'INFO': '\033[92m',        # Green
         'WARNING': '\033[93m',     # Yellow
         'ERROR': '\033[91m',       # Red
@@ -49,30 +46,23 @@ class ColoredFormatter(logging.Formatter):
     RESET = '\033[0m'
 
     def format(self, record):
-        # Format timestamp (plain, no color)
         timestamp = self.formatTime(record, self.datefmt)
 
-        # Get levelname dengan warna
         levelname = record.levelname
         if levelname in self.COLORS:
             colored_level = f"{self.COLORS[levelname]}{levelname}{self.RESET}"
         else:
             colored_level = levelname
 
-        # Get message dan pastikan tidak ada ANSI codes tersembunyi
         message = str(record.getMessage())
 
-        # Build dengan explicit reset sebelum message
         return f"{timestamp} {colored_level} {self.RESET}{message}"
 
-
-# Telnet options
 ECHO = 1
 SUPPRESS_GO_AHEAD = 3
 ENVIRON = 36
 NEW_ENVIRON = 39
 
-# NEW-ENVIRON subnegotiation
 ENV_IS = 0
 ENV_SEND = 1
 ENV_VAR = 0
@@ -579,7 +569,6 @@ def scan_target(
 def setup_logging(verbose: bool) -> logging.Logger:
     level = logging.DEBUG if verbose else logging.INFO
 
-    # Simple formatter tanpa warna
     logging.basicConfig(
         level=level,
         format="%(asctime)s %(levelname)s %(message)s",
@@ -653,7 +642,6 @@ def create_combined_progress_box(
 
     lines.append("├" + "─" * (width - 2) + "┤")
 
-    # Time (last vulnerable or N/A)
     if last_vulnerable_time:
         time_str = f"Timestamp:: {last_vulnerable_time}"
     else:
@@ -661,7 +649,6 @@ def create_combined_progress_box(
     padding = width - 4 - len(time_str)
     lines.append(f"│ {time_str}" + " " * padding + " │")
 
-    # IP Address (last vulnerable or N/A)
     if last_vulnerable_host:
         ip_str = f"IP Address: {last_vulnerable_host}"
     else:
@@ -669,7 +656,6 @@ def create_combined_progress_box(
     padding = width - 4 - len(ip_str)
     lines.append(f"│ {ip_str}" + " " * padding + " │")
 
-    # Port (last vulnerable or N/A)
     if last_vulnerable_port:
         port_str = f"Port: {last_vulnerable_port}"
     else:
@@ -677,39 +663,31 @@ def create_combined_progress_box(
     padding = width - 4 - len(port_str)
     lines.append(f"│ {port_str}" + " " * padding + " │")
 
-    # Endpoints
     endpoints_str = f"Endpoints: {completed:,}/{total:,}"
     padding = width - 4 - len(endpoints_str)
     lines.append(f"│ {endpoints_str}" + " " * padding + " │")
 
-    # Scan Rate
     rate_str = f"Scan Rate: {rate:.1f}/s"
     padding = width - 4 - len(rate_str)
     lines.append(f"│ {rate_str}" + " " * padding + " │")
 
-    # ETA
     eta_str = f"ETA: {int(eta)}s"
     padding = width - 4 - len(eta_str)
     lines.append(f"│ {eta_str}" + " " * padding + " │")
 
-    # Vulnerable Found
     vuln_str = f"Vulnerable Found: {vulnerable_count}"
     padding = width - 4 - len(vuln_str)
     lines.append(f"│ {vuln_str}" + " " * padding + " │")
 
-    # Progress bar - FIXED WIDTH
     progress_pct = (completed / total * 100) if total > 0 else 0
 
-    # Calculate available space: width(79) - borders(4) - "Progress: " (10) - " ]" (2) - " 100.0%" (7) = 56
     bar_width = 56
     filled = int(bar_width * completed / total) if total > 0 else 0
     filled = min(filled, bar_width)
     bar = "█" * filled + "░" * (bar_width - filled)
 
-    # Build progress line with exact spacing
     progress_line = f"Progress: [{bar}] {progress_pct:5.1f}%"
 
-    # Ensure exact width
     content_length = len(progress_line)
     padding = (width - 4) - content_length
     if padding < 0:
@@ -764,10 +742,8 @@ def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, tot
     lines.append("├" + "─" * (width - 2) + "┤")
     lines.append(auto_center_title("ALL VULNERABLE HOSTS"))
 
-    # FIX: [7,29,10,30] = 76 content ✓ + 4 pipes = 80 PERFECT
     col_widths = [7, 29, 10, 30]
 
-    # Separator EXACT count ─ sesuai col_widths
     sep_parts = ["─" * w for w in col_widths]
     top_sep = "├" + "┬".join(sep_parts) + "┤"
     data_sep = "├" + "┼".join(sep_parts) + "┤"
@@ -775,19 +751,17 @@ def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, tot
 
     lines.append(top_sep)
 
-    # Headers CENTER - NO EXTRA SPACES
     headers = ['#', 'Host', 'Port', 'Evidence']
     header_parts = []
     for header, w in zip(headers, col_widths):
         pad_left = (w - len(header)) // 2
         pad_right = w - len(header) - pad_left
         header_parts.append(" " * pad_left + header + " " * pad_right)
-    # FIX: │content│content│content│content│ (NO extra spaces between)
+
     lines.append("│" + "│".join(header_parts) + "│")
 
     lines.append(data_sep)
 
-    # Data rows - SAME FORMAT
     for i, result in enumerate(vulnerable, 1):
         num_str = str(i)
         host_str = result.host
@@ -805,7 +779,6 @@ def create_final_compact_table(vulnerable: List[ScanResult], elapsed: float, tot
     lines.append(bottom_sep)
     return "\n".join(lines)
 
-
 def scan_with_basic_compact(
     endpoints: List[Tuple[str, int]],
     config: ScanConfig,
@@ -822,12 +795,10 @@ def scan_with_basic_compact(
     last_time_update = time.time()
     time_interval = 0.5
 
-    # Track last vulnerable
     last_vuln_host = None
     last_vuln_port = None
     last_vuln_time = None
 
-    # Print header
     print(create_compact_header(
         asn=args.asn if hasattr(args, 'asn') and args.asn else None,
         targets=len(set(h for h, p in endpoints)),
@@ -836,10 +807,8 @@ def scan_with_basic_compact(
     ))
     print()
 
-    # Box always has 12 lines (fixed size)
     box_lines = 12
 
-    # Print initial box
     print(create_combined_progress_box(0, total, 0, 0, 0))
 
     executor = concurrent.futures.ThreadPoolExecutor(
@@ -873,8 +842,7 @@ def scan_with_basic_compact(
                     last_vuln_port = result.port
                     last_vuln_time = time.strftime("%H:%M:%S")
 
-                    # Update box with vulnerable info
-                    sys.stdout.write(f"\033[{box_lines}A")  # Move up
+                    sys.stdout.write(f"\033[{box_lines}A")
                     print(create_combined_progress_box(
                         completed, total, rate, eta, len(vulnerable),
                         last_vuln_host, last_vuln_port, last_vuln_time
@@ -883,9 +851,8 @@ def scan_with_basic_compact(
                     last_time_update = current_time
                     continue
 
-                # Periodic update
                 if current_time - last_time_update >= time_interval or completed == total:
-                    sys.stdout.write(f"\033[{box_lines}A")  # Move up
+                    sys.stdout.write(f"\033[{box_lines}A")
                     print(create_combined_progress_box(
                         completed, total, rate, eta, len(vulnerable),
                         last_vuln_host, last_vuln_port, last_vuln_time
@@ -898,7 +865,7 @@ def scan_with_basic_compact(
 
     except KeyboardInterrupt:
         interrupted = True
-        # Clear ^C character sebelum print message
+
         sys.stderr.write("\r\033[K")
         sys.stderr.flush()
         print("\n")
@@ -908,12 +875,9 @@ def scan_with_basic_compact(
     finally:
         executor.shutdown(wait=False, cancel_futures=True)
 
-    # Final spacing
     print()
 
     return (not interrupted, completed)
-
-
 
 def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -922,20 +886,20 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Scan specific ASN with multiple ports
+  # Scan Specific ASN with Multiple Ports
   %(prog)s -a AS10111 -p 23,2323 --threads 100
   %(prog)s -a 10111 -p 23,2323 --threads 100
 
-  # Scan CIDR range
+  # Scan CIDR Range
   %(prog)s -t 192.168.23.0/24 -p 23 -o results.txt
 
-  # Scan multiple IPs
+  # Scan Multiple IPs with Multiple Ports
   %(prog)s -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
 
-  # Scan from file
+  # Scan Single IP, IPs, and CIDR Range from File
   %(prog)s -f targets.txt -p 23 --threads 50 -o output.txt
 
-  # Scan ASN with custom limits
+  # Scan Specific ASN with Custom Limits
   %(prog)s -a AS10111 --max-hosts-per-cidr 2048 --threads 200
 
 For more information: https://github.com/madfxr/Twenty-Three-Scanner
@@ -1039,14 +1003,12 @@ For more information: https://github.com/madfxr/Twenty-Three-Scanner
 
     return parser.parse_args(argv)
 
-
 def build_endpoints(targets: Sequence[str], ports: Sequence[int]) -> List[Tuple[str, int]]:
     endpoints: List[Tuple[str, int]] = []
     for host in targets:
         for port in ports:
             endpoints.append((host, port))
     return endpoints
-
 
 def main(argv: Sequence[str]) -> int:
     args = parse_args(argv)
@@ -1075,7 +1037,6 @@ def main(argv: Sequence[str]) -> int:
             temp_logger.handlers = [handler]
             temp_logger.warning("Scanning Force Interrupted by User (CTRL+C)")
 
-
     signal.signal(signal.SIGINT, handle_interrupt)
 
     logger.warning("Using Basic Display Mode")
@@ -1083,13 +1044,11 @@ def main(argv: Sequence[str]) -> int:
     try:
         ports = parse_ports(args.port)
     except argparse.ArgumentTypeError as exc:
-        # Hardcode tanpa color codes
         error_msg = str(exc)
         timestamp = time.strftime("%H:%M:%S")
         sys.stderr.write(f"{timestamp} \033[91mERROR\033[0m {error_msg}\n")
         sys.stderr.flush()
         return 2
-
 
     logger.info("Parsed Ports: %s", ",".join(map(str, ports)))
 
@@ -1192,7 +1151,6 @@ def main(argv: Sequence[str]) -> int:
         return 130
 
     return 0
-
 
 if __name__ == "__main__":
     try:
