@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Twenty-Three Scanner - revised script
+# Made with ✨ Magic ©️ Nur Mukhammad Agus (https://github.com/madfxr), 2026. Free and Open Source Software (FOSS)
 
 import argparse
 import atexit
