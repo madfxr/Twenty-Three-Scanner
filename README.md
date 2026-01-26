@@ -1,4 +1,4 @@
-# 🎯 Twenty-Three Scanner v1.0
+# 🎯 Twenty-Three Scanner
 
 **CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**
 
