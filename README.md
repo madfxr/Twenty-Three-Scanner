@@ -17,6 +17,8 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 - 🧩 **[Features](#-features)**
 - ☢️ **[Vulnerability Details](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-vulnerability-details)**
+  - 📊 **[Service Status](https://github.com/madfxr/Twenty-Three-Scanner/edit/main/README.md#-service-status)**
+  - 🧪 **[Proof of Concept (PoC)](https://github.com/madfxr/Twenty-Three-Scanner/edit/main/README.md#-proof-of-concept-poc)**
   - 🏷️ **[Affected Versions](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-affected-versions)**
   - ⚔️ **[Attack Vector](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-attack-vector)**
   - 🚨 **[CVSS Score](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#-cvss-score)**
@@ -48,6 +50,9 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in **[GNU InetUtils](https://www.gnu.org/software/inetutils)** **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** that allows unauthenticated remote attackers to gain root access by exploiting the **NEW-ENVIRON** option handling.
 
+---
+
+### 📊 Service Status
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/d6b009b7-67d3-41b6-ace6-7fd5b29bd4a0"
@@ -56,6 +61,9 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
   />
 </p>
 
+---
+
+### 🧪 Proof of Concept (PoC)
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/2710b1b6-74cf-4f6a-87d3-981d7f1eaa6e"
@@ -103,8 +111,8 @@ sudo python3 twenty-three-scanner.py -h
 ## 📜 Usage
 
 ```bash
-usage: python3 twenty-three-scanner.py [-h] [-t TARGET] [-f FILE] [-a ASN] [-p PORT] [--threads N] [--user-value VALUE] [--connect-timeout SEC] [--read-timeout SEC]
-                                       [--id-timeout SEC] [--max-hosts-per-cidr N] [--max-total-hosts N] [--skip-large-networks] [-o FILE] [-v]
+usage: python3 twenty-three-scanner.py [-h] [-t TARGET] [-f FILE] [-a ASN] [-p PORT] [--threads N] [--user-value VALUE] [--connect-timeout SEC] [--read-timeout SEC] [--id-timeout SEC]
+                                       [--max-hosts-per-cidr N] [--max-total-hosts N] [--skip-large-networks] [-o FILE] [-v]
 
 CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass
 
@@ -146,38 +154,82 @@ Output Options:
 ## 🔬 Examples
 
 ```bash
-  # Scan Specific ASN with Multiple Ports
-  sudo python3 twenty-three-scanner.py -a AS10111 -p 23,2323 --threads 100
-  sudo python3 twenty-three-scanner.py -a 10111 -p 23,2323 --threads 100
+  # Scan Single IP Address, and Single Port
+  sudo python3 twenty-three-scanner.py -t 10.0.0.1 -p 23
 
-  # Scan CIDR Range
-  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23 -o results.txt
+  # Scan Single IP Address, and Multiple Ports
+  sudo python3 twenty-three-scanner.py -t 10.0.0.1 -p 23,2323
 
-  # Scan Multiple IPs with Multiple Ports
+  # Scan Multiple IP Addresses, and Single Port
+  sudo python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23
+
+  # Scan Multiple Addresses, and Multiple Ports
   sudo python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
 
-  # Scan Single IP, IPs, and CIDR Range from File
-  sudo python3 twenty-three-scanner.py -f targets.txt -p 23 --threads 50 -o output.txt
+  # Scan CIDR Range, and Single Port with Results
+  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23 -o results.txt
 
-  # Scan Specific ASN with Custom Limits
-  sudo python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 200
+  # Scan CIDR Range, and Multiple Ports with Results
+  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23,2323 -o results.txt
+
+  # Scan Single IP Address, Multiple Addresses, or CIDR Range from File, and Single Port with Custom Thread and Output 
+  sudo python3 twenty-three-scanner.py -f targets.txt -p 23 --threads 100 -o output.txt
+
+  # Scan Single IP Address, Multiple IP Addresss, or CIDR Range from File, and Multiple Ports with Custom Threads and Output 
+  sudo python3 twenty-three-scanner.py -f targets.txt -p 23,2323 --threads 100 -o output.txt
+
+  # Scan ASN and Single Port with Custom Threads
+  sudo python3 twenty-three-scanner.py -a 10111 -p 23 --threads 100
+  sudo python3 twenty-three-scanner.py -a AS10111 -p 23 --threads 100
+
+  # Scan ASN and Multiple Ports with Custom Threads
+  sudo python3 twenty-three-scanner.py -a 10111 -p 23,2323 --threads 100
+  sudo python3 twenty-three-scanner.py -a AS10111 -p 23,2323 --threads 100
+
+  # Scan ASN with Custom Limits and Custom Threads
+  sudo python3 twenty-three-scanner.py -a 10111 --max-hosts-per-cidr 2048 --threads 100
+  sudo python3 twenty-three-scanner.py -a AS10111 --max-hosts-per-cidr 2048 --threads 100
 ```
 
 ---
 
 ## ⚗️ Demos
 
+### Scan Single IP with Multiple Ports
+
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/b3a09dfd-58b9-4b32-ba42-80c5d6668c93"
+    src="https://github.com/user-attachments/assets/97402e73-f31f-4651-944c-59270e3e9d52"
     alt="image"
     style="max-width: 891px; width: 100%;"
   />
 </p>
 
+### Scan Multiple IP Addresses with Single Port
+
 <p align="center">
   <img
-    src="https://github.com/user-attachments/assets/7812a297-f662-49f7-b6fd-307c156073bd"
+    src="https://github.com/user-attachments/assets/f8d674e1-323f-40a2-bc7d-9e0eca0ec437"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
+
+### Scan CIDR Range with Single Port
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/aac8a7e0-30e9-4efb-9146-7c4031c2d733"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
+
+### Scan ASN with Multiple Ports
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/673c8cda-a1a4-4662-9a0d-461b2f5eb77d"
     alt="image"
     style="max-width: 891px; width: 100%;"
   />
