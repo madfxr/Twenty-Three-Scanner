@@ -2,19 +2,19 @@
 
 A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure **[Python](https://www.python.org)** standard library - zero external dependencies required.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Open Source](https://img.shields.io/badge/Open%20Source-%23F0F0F0?style=for-the-badge&logo=github&logoColor=black)](https://opensource.org)
-[![GitHub Repository](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github&logoColor=ffffff)](https://github.com/madfxr?tab=repositories)
-[![Python 3.7+](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=ffffff)](https://www.python.org/downloads)
-[![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://www.linux.org)
-[![FreeBSD](https://img.shields.io/badge/BSD-003087?style=for-the-badge&logo=freebsd&logoColor=ffffff)](https://www.freebsd.org/)
-[![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://www.apple.com/macos/)
-[![Windows](https://img.shields.io/badge/Windows-017ACA?style=for-the-badge&logo=windows&logoColor=ffffff)](https://www.microsoft.com/windows)
-[![Offensive Security](https://img.shields.io/badge/Offensive%20Security-E38227?style=for-the-badge&logo=kali-linux&logoColor=ffffff)](https://www.offsec.com)
-[![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-FF6B35?style=for-the-badge&logo=hackthebox&logoColor=ffffff)](https://www.eccouncil.org)
-[![CVE-2026-24061](https://img.shields.io/badge/CVE--2026--24061-Critical-EB4D00?style=for-the-badge&logo=github&logoColor=white)](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)
-[![GNU InetUtils](https://img.shields.io/badge/GNU%20InetUtils-FF6B35?style=for-the-badge&logo=gnu&logoColor=black)](https://www.gnu.org/software/inetutils)
-[![Telnetd](https://img.shields.io/badge/Telnetd-DC3023?style=for-the-badge&logo=terminal&logoColor=white)](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)
+[![License: MIT](https://img.shields.io/badge/License-MIT-3ea638.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Python 3.7+](https://img.shields.io/badge/Python-3.7+-3776AB?style=for-the-badge)](https://www.python.org/downloads)
+[![Android](https://img.shields.io/badge/OS-Android-78C257?style=for-the-badge)](https://www.android.com)
+[![Windows](https://img.shields.io/badge/OS-Windows-0078D4?style=for-the-badge)](https://www.microsoft.com/windows)
+[![macOS](https://img.shields.io/badge/OS-macOS-020204?style=for-the-badge)](https://www.apple.com/macos)
+[![Solaris](https://img.shields.io/badge/OS-Solaris-C74634?style=for-the-badge)](https://www.oracle.com/solaris)
+[![FreeBSD](https://img.shields.io/badge/OS-FreeBSD-990000?style=for-the-badge)](https://www.freebsd.org)
+[![Linux](https://img.shields.io/badge/OS-Linux-F4BC00?style=for-the-badge)](https://www.linux.org)
+[![Offensive Security](https://img.shields.io/badge/Offensive-Security-A32D2A?style=for-the-badge)](https://www.offsec.com)
+[![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-Tools-6619d0?style=for-the-badge)](https://www.eccouncil.org)
+[![CVE-2026-24061](https://img.shields.io/badge/CVE--2026--24061-9.8%20(Critical)-A32D2A?style=for-the-badge)](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)
+[![GNU InetUtils](https://img.shields.io/badge/GNU-InetUtils-A32D2A?style=for-the-badge)](https://www.gnu.org/software/inetutils)
+[![Telnetd](https://img.shields.io/badge/Telnetd->=1.9.3%20<=2.7-A32D2A?style=for-the-badge)](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)
 
 ---
 
@@ -83,10 +83,15 @@ And here is the Proof of Concept (PoC) for this vulnerability, which can be exec
 
 ---
 
-### 🏷️ Affected Versions
-- **[GNU InetUtils](https://www.gnu.org/software/inetutils)** since version 1.9.3 up to and including version 2.7.
+### 💥 Affected Versions
+- **[GNU InetUtils](https://www.gnu.org/software/inetutils)** >=1.9.3 <=2.7.
 - Various embedded **[Linux](https://www.linux.org)** distributions.
 - IoT devices with vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** implementations.
+
+---
+
+### 🧵 Patched Versions
+- **[GNU InetUtils](https://www.gnu.org/software/inetutils)** >=2.8.
 
 ---
 
