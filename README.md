@@ -1,15 +1,20 @@
 # 🎯 Twenty-Three Scanner
 
-**CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**
-
 A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure **[Python](https://www.python.org)** standard library - zero external dependencies required.
 
-[![Python](https://img.shields.io/badge/python-3.7+-blue?logo=python&logoColor=white)](https://www.python.org)
-[![Linux](https://img.shields.io/badge/platform-linux-lightgrey?logo=linux&logoColor=white)](https://www.linux.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)
-[![OpenSource](https://img.shields.io/badge/OpenSource-yes-brightgreen)](https://opensource.org)
-[![ReadTeam](https://img.shields.io/badge/RedTeam-Security-red?logo=shield)]()
-[![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-Tools-purple?logo=hackthebox&logoColor=white)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Open Source](https://img.shields.io/badge/Open%20Source-%23F0F0F0?style=for-the-badge&logo=github&logoColor=black)](https://github.com/)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github&logoColor=ffffff)](https://github.com/username/repo)
+[![Python 3.7+](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=ffffff)](https://www.python.org/)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)](https://www.linux.org/)
+[![BSD](https://img.shields.io/badge/BSD-003087?style=for-the-badge&logo=freebsd&logoColor=ffffff)](https://www.freebsd.org/)
+[![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=macos&logoColor=F0F0F0)](https://www.apple.com/macos/)
+[![Windows](https://img.shields.io/badge/Windows-017ACA?style=for-the-badge&logo=windows&logoColor=ffffff)](https://www.microsoft.com/windows)
+[![Offensive Security](https://img.shields.io/badge/Offensive%20Security-E38227?style=for-the-badge&logo=kali-linux&logoColor=ffffff)](https://www.offsec.com/)
+[![Ethical Hacking](https://img.shields.io/badge/Ethical%20Hacking-FF6B35?style=for-the-badge&logo=hackthebox&logoColor=ffffff)](https://www.hackthebox.com/)
+[![CVE-2026-24061](https://img.shields.io/badge/CVE--2026--24061-Critical-EB4D00?style=for-the-badge&logo=github&logoColor=white)](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)
+[![GNU InetUtils](https://img.shields.io/badge/GNU%20InetUtils-FF6B35?style=for-the-badge&logo=gnu&logoColor=black)](https://www.gnu.org/software/inetutils/)
+[![Telnetd](https://img.shields.io/badge/Telnetd-DC3023?style=for-the-badge&logo=terminal&logoColor=white)](https://www.rfc-editor.org/rfc/rfc857.html)
 
 ---
 
@@ -17,8 +22,8 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 - ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)**
 - 🧩 **[Features](#-features)**
-- ☢️ **[Vulnerability Details](#%EF%B8%8F-vulnerability-details)**
-  - 📊 **[Service Status](#-service-status)**
+- ☣️ **[Vulnerability Details](#%EF%B8%8F-vulnerability-details)**
+  - ⚡ **[Service Status](#-service-status)**
   - 🧪 **[Proof of Concept (PoC)](#-proof-of-concept-poc)**
   - 🏷️ **[Affected Versions](#%EF%B8%8F-affected-versions)**
   - ⚔️ **[Attack Vector](#%EF%B8%8F-attack-vector)**
@@ -40,19 +45,21 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 - 🌍 **GEO Location Intelligence** – Real-Time ASN, Provider and Location Fetching from **[ipapi](https://ipapi.co)** API.
 - 💾 **Graceful Interruption** – CTRL+C Handling with Automatic Result Saving.
 - 📝 **Detailed Logging** – Configurable Verbosity Levels for Debugging.
-- 🔐 **Safe Scanning** – Built-In Limits to Prevent Accidental Massive Scans.
+- 🛡️ **Safe Scanning** – Built-In Limits to Prevent Accidental Massive Scans.
 - 🎨 **Clean Output** – Professional Bordered Tables with Scan Summaries.
 - 📦 **Zero Dependencies** – Pure **[Python](https://www.python.org)** 3.7+ Standard Library Only.
 
 ---
 
-## ☢️ Vulnerability Details
+## ☣️ Vulnerability Details
 
 **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)** is a critical authentication bypass vulnerability in **[GNU InetUtils](https://www.gnu.org/software/inetutils)** **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** that allows unauthenticated remote attackers to gain root access by exploiting the **NEW-ENVIRON** option handling.
 
 ---
 
-### 📊 Service Status
+### ⚡ Service Status
+
+The following is the Telnetd service configuration on the target host side.
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/d6b009b7-67d3-41b6-ace6-7fd5b29bd4a0"
@@ -64,6 +71,8 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 ---
 
 ### 🧪 Proof of Concept (PoC)
+
+And here is the Proof of Concept (PoC) for this vulnerability, which can be executed manually from the attacker's host simply by running the command `USER=“-f root” telnet -a <TARGET_HOST> 23`.
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/2710b1b6-74cf-4f6a-87d3-981d7f1eaa6e"
@@ -110,6 +119,7 @@ sudo python3 twenty-three-scanner.py -h
 
 ## 📜 Usage
 
+The following is a manual for the Twenty-Three Scanner tool that can be used to detect the vulnerability **CVE-2026-24061 - GNU InetUtils Telnetd Remote Authentication Bypass**.
 ```bash
 usage: python3 twenty-three-scanner.py [-h] [-t TARGET] [-f FILE] [-a ASN] [-p PORT] [--threads N] [--user-value VALUE] [--connect-timeout SEC] [--read-timeout SEC] [--id-timeout SEC]
                                        [--max-hosts-per-cidr N] [--max-total-hosts N] [--skip-large-networks] [-o FILE] [-v]
@@ -195,7 +205,7 @@ Output Options:
 
 ## ⚗️ Demos
 
-### Scan Single IP with Multiple Ports
+**Scan Single IP Address with Multiple Ports**.
 
 <p align="center">
   <img
@@ -205,7 +215,7 @@ Output Options:
   />
 </p>
 
-### Scan Multiple IP Addresses with Single Port
+**Scan Multiple IP Addresses with Single Port**.
 
 <p align="center">
   <img
@@ -215,7 +225,7 @@ Output Options:
   />
 </p>
 
-### Scan CIDR Range with Single Port
+**Scan CIDR Range with Single Port**.
 
 <p align="center">
   <img
@@ -225,11 +235,21 @@ Output Options:
   />
 </p>
 
-### Scan ASN with Multiple Ports
+**Scan ASN with Multiple Ports**.
 
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/673c8cda-a1a4-4662-9a0d-461b2f5eb77d"
+    alt="image"
+    style="max-width: 891px; width: 100%;"
+  />
+</p>
+
+**Scan Single IP Address, Multiple Addresses, or CIDR Range from File, and Single Port with Custom Thread and Output**.
+
+<p align="center">
+  <img
+    src="https://github.com/user-attachments/assets/e4a4aff0-e8de-4723-a3da-aa5df25d698f"
     alt="image"
     style="max-width: 891px; width: 100%;"
   />
