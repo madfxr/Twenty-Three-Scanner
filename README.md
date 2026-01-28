@@ -25,7 +25,8 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 - ☣️ **[Vulnerability Details](#%EF%B8%8F-vulnerability-details)**
   - ⚡ **[Service Status](#-service-status)**
   - 🧪 **[Proof of Concept (PoC)](#-proof-of-concept-poc)**
-  - 🏷️ **[Affected Versions](#%EF%B8%8F-affected-versions)**
+  - 💥 **[Affected Versions](#-affected-versions)**
+  - 💥 **[Patched Versions](#-patched-versions)**
   - ⚔️ **[Attack Vector](#%EF%B8%8F-attack-vector)**
   - 🚨 **[CVSS Score](#-cvss-score)**
 - 🛠️ **[Installation](#%EF%B8%8F-installation)**
