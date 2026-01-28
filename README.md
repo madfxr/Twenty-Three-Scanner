@@ -163,6 +163,7 @@ Output Options:
 
 ## 🔬 Examples
 
+And here are some examples of how to use the command.
 ```bash
   # Scan Single IP Address, and Single Port
   sudo python3 twenty-three-scanner.py -t 10.0.0.23 -p 23
