@@ -15,18 +15,18 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 
 ## 🔗 Table of Contents
 
+- ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)**
 - 🧩 **[Features](#-features)**
-- ☢️ **[Vulnerability Details](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-vulnerability-details)**
-  - 📊 **[Service Status](https://github.com/madfxr/Twenty-Three-Scanner/edit/main/README.md#-service-status)**
-  - 🧪 **[Proof of Concept (PoC)](https://github.com/madfxr/Twenty-Three-Scanner/edit/main/README.md#-proof-of-concept-poc)**
-  - 🏷️ **[Affected Versions](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-affected-versions)**
-  - ⚔️ **[Attack Vector](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-attack-vector)**
-  - 🚨 **[CVSS Score](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#-cvss-score)**
-- 🛠️ **[Installation](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-installation)**
+- ☢️ **[Vulnerability Details](#%EF%B8%8F-vulnerability-details)**
+  - 📊 **[Service Status](#-service-status)**
+  - 🧪 **[Proof of Concept (PoC)](#-proof-of-concept-poc)**
+  - 🏷️ **[Affected Versions](#%EF%B8%8F-affected-versions)**
+  - ⚔️ **[Attack Vector](#%EF%B8%8F-attack-vector)**
+  - 🚨 **[CVSS Score](#-cvss-score)**
+- 🛠️ **[Installation](#%EF%B8%8F-installation)**
 - 📜 **[Usage](#-usage)**
 - 🔬 **[Examples](#-examples)**
-- ⚗️ **[Demos](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=readme-ov-file#%EF%B8%8F-demos)**
-- ⚖️ **[License](https://github.com/madfxr/Twenty-Three-Scanner/tree/main?tab=MIT-1-ov-file)**
+- ⚗️ **[Demos](#%EF%B8%8F-demos)**
 - 📖 **[References](#-references)**
 
 ---
@@ -155,22 +155,22 @@ Output Options:
 
 ```bash
   # Scan Single IP Address, and Single Port
-  sudo python3 twenty-three-scanner.py -t 10.0.0.1 -p 23
+  sudo python3 twenty-three-scanner.py -t 10.0.0.23 -p 23
 
   # Scan Single IP Address, and Multiple Ports
-  sudo python3 twenty-three-scanner.py -t 10.0.0.1 -p 23,2323
+  sudo python3 twenty-three-scanner.py -t 10.0.0.23 -p 23,2323
 
   # Scan Multiple IP Addresses, and Single Port
-  sudo python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23
+  sudo python3 twenty-three-scanner.py -t 10.0.0.23,10.0.23.23 -p 23
 
   # Scan Multiple Addresses, and Multiple Ports
-  sudo python3 twenty-three-scanner.py -t 10.0.0.1,10.0.0.2,10.0.0.3 -p 23,2323
+  sudo python3 twenty-three-scanner.py -t 10.0.0.23,10.0.23.23 -p 23,2323
 
   # Scan CIDR Range, and Single Port with Results
-  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23 -o results.txt
+  sudo python3 twenty-three-scanner.py -t 192.168.23.0/23 -p 23 -o results.txt
 
   # Scan CIDR Range, and Multiple Ports with Results
-  sudo python3 twenty-three-scanner.py -t 192.168.23.0/24 -p 23,2323 -o results.txt
+  sudo python3 twenty-three-scanner.py -t 192.168.23.0/23 -p 23,2323 -o results.txt
 
   # Scan Single IP Address, Multiple Addresses, or CIDR Range from File, and Single Port with Custom Thread and Output 
   sudo python3 twenty-three-scanner.py -f targets.txt -p 23 --threads 100 -o output.txt
