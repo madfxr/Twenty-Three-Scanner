@@ -1,4 +1,4 @@
-# 🎯 Twenty-Three Scanner
+# 🛰️ Twenty-Three Scanner
 
 A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure **[Python](https://www.python.org)** standard library - zero external dependencies required.
 
@@ -31,7 +31,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
   - 🚨 **[CVSS Score](#-cvss-score)**
 - 🛠️ **[Installation](#%EF%B8%8F-installation)**
 - 📜 **[Usage](#-usage)**
-- 🔬 **[Examples](#-examples)**
+- 🎯 **[Examples](#-examples)**
 - ⚗️ **[Demos](#%EF%B8%8F-demos)**
 - 📖 **[References](#-references)**
 
@@ -167,7 +167,7 @@ Output Options:
 
 ---
 
-## 🔬 Examples
+## 🎯 Examples
 
 And here are some examples of how to use the command.
 ```bash
