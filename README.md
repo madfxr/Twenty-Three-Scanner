@@ -3,7 +3,7 @@
 A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Telnetd](https://www.gnu.org/software/inetutils/manual/inetutils.html#telnetd-invocation)** services affected by **[CVE-2026-24061](https://nvd.nist.gov/vuln/detail/CVE-2026-24061)**. Built with pure **[Python](https://www.python.org)** standard library - zero external dependencies required.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-3ea638.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Python 3.7+](https://img.shields.io/badge/Python-3.7+-3776AB?style=for-the-badge)](https://www.python.org/downloads)
+[![Python 3.X](https://img.shields.io/badge/Python-3.X-3776AB?style=for-the-badge)](https://www.python.org/downloads)
 [![Android](https://img.shields.io/badge/OS-Android-78C257?style=for-the-badge)](https://www.android.com)
 [![Windows](https://img.shields.io/badge/OS-Windows-0078D4?style=for-the-badge)](https://www.microsoft.com/windows)
 [![macOS](https://img.shields.io/badge/OS-macOS-020204?style=for-the-badge)](https://www.apple.com/macos)
@@ -48,7 +48,7 @@ A **Powerful**, **Fast**, and **Elegant** scanner for detecting vulnerable **[Te
 - 📝 **Detailed Logging** – Configurable Verbosity Levels for Debugging.
 - 🛡️ **Safe Scanning** – Built-In Limits to Prevent Accidental Massive Scans.
 - 🎨 **Clean Output** – Professional Bordered Tables with Scan Summaries.
-- 📦 **Zero Dependencies** – Pure **[Python](https://www.python.org)** 3.7+ Standard Library Only.
+- 📦 **Zero Dependencies** – Pure **[Python](https://www.python.org)** 3.X Standard Library Only.
 
 ---
 
