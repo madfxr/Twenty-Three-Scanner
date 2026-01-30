@@ -271,6 +271,7 @@ And here are some examples of how to use the command.
 - **[Inetutils - GNU network utilities](https://www.gnu.org/software/inetutils)**
 - **[[SECURITY] [DLA 4453-1] inetutils security update](https://lists.debian.org/debian-lts-announce/2026/01/msg00025.html)**
 - **[GNU InetUtils Security Advisory: remote authentication by-pass in telnet](https://lists.gnu.org/archive/html/bug-inetutils/2026-01/msg00004.html)**
+- **[GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://seclists.org/oss-sec/2026/q1/89)**
 - **[GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/20/2)**
 - **[GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/20/2#:~:text=root@...a%3A~%20USER=')**
 - **[Re: GNU InetUtils Security Advisory: remote authentication by-pass in telnetd](https://www.openwall.com/lists/oss-security/2026/01/22/1)**
